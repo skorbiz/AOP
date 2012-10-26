@@ -1,3 +1,11 @@
+Workspace/.metadata/*
+Workspace/.DS_Store*
+*.classpath
+*.project
+*.settings
+*APDescription.txt
+*MTPs-Main-Container.txt
+
 *.class
 
 # Package Files #
