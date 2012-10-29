@@ -106,7 +106,7 @@ public class Lane extends Agent {
 	
 	private class RequestsServer extends CyclicBehaviour {
 		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF);
 			ACLMessage msg = myAgent.receive(mt);
 			
 			if (msg != null) {

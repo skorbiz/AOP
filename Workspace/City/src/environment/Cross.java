@@ -21,11 +21,12 @@ public class Cross extends Agent {
 	// The list of known seller agents
 	private AID[] laneAgents;
 	// Id of the conversation
-	private String conId = "lane-trade";
+	private String conIdPrice = "lane-price";
+	private String conIdTrade = "lane-trade";
 	// Number of PROPOSE agent
 	private int lanePro = 0;
-	// traffic direction, 0 for vertical, 1 for horizontal
-	private int traDir = 0;
+	// traffic direction, "v" for vertical, "h" for horizontal
+	private String traDir = "v";
 	// Price for changing direction
 	private int chaPri = 2;
 	
@@ -70,29 +71,29 @@ public class Cross extends Agent {
 						// Perform the request
 						myAgent.addBehaviour(new RequestLaneForPrices());	
 					}
-					else {
-//						System.out.println("Finding: " + agentToFind + " agents.");
-						// Update the list of seller agents
-						DFAgentDescription template = new DFAgentDescription();
-						ServiceDescription sd = new ServiceDescription();
-						sd.setType(agentToFind);
-						template.addServices(sd);
-						try {
-							DFAgentDescription[] result = DFService.search(myAgent, template); 
-							laneAgents = new AID[result.length];
-							System.out.println("Found " + result.length + " " + agentToFind + " agent(s).");
-							for (int i = 0; i < result.length; ++i) {
-								laneAgents[i] = result[i].getName();
-//								System.out.println(laneAgents[i].getName());
-							}
-						}
-						catch (FIPAException fe) {
-							fe.printStackTrace();
-						}
-	          
-						// Perform the request
-						myAgent.addBehaviour(new RequestLaneForMovingCar());	
-					}
+//					else {
+////						System.out.println("Finding: " + agentToFind + " agents.");
+//						// Update the list of seller agents
+//						DFAgentDescription template = new DFAgentDescription();
+//						ServiceDescription sd = new ServiceDescription();
+//						sd.setType(agentToFind);
+//						template.addServices(sd);
+//						try {
+//							DFAgentDescription[] result = DFService.search(myAgent, template); 
+//							laneAgents = new AID[result.length];
+//							System.out.println("Found " + result.length + " " + agentToFind + " agent(s).");
+//							for (int i = 0; i < result.length; ++i) {
+//								laneAgents[i] = result[i].getName();
+////								System.out.println(laneAgents[i].getName());
+//							}
+//						}
+//						catch (FIPAException fe) {
+//							fe.printStackTrace();
+//						}
+//	          
+//						// Perform the request
+//						myAgent.addBehaviour(new RequestLaneForMovingCar());	
+//					}
 				}
 			} );
 		}
@@ -122,16 +123,16 @@ public class Cross extends Agent {
 			switch (step) {
 				case 0:
 					// Send the cfp to all lanes
-					ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+					ACLMessage cfp = new ACLMessage(ACLMessage.QUERY_IF);
 					for (int i = 0; i < laneAgents.length; ++i) {
 						cfp.addReceiver(laneAgents[i]);
 					} 
 					cfp.setContent(x + y);
-					cfp.setConversationId(conId);
+					cfp.setConversationId(conIdPrice);
 					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 					myAgent.send(cfp);
 					// Prepare the template to get proposals
-					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conId),
+					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdPrice),
 	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
 					step = 1;
 					break;
@@ -173,12 +174,12 @@ public class Cross extends Agent {
 					System.out.println("Decision based on: " + offers[0] + " + " + chaPri + " > " + offers[1] + ", from " + lanePro + " agent(s).");
 					if( offers[0]+chaPri>offers[1] ) { // vertical
 						chaPri = 2;
-						traDir = 0;
+						traDir = "v";
 						System.out.println("Trafic direction: up/down. Price to change is " + chaPri + " and traffic direction is " + traDir + ".");
 					}
 					else { // horizontal
 						chaPri = -2;
-						traDir = 1;
+						traDir = "h";
 						System.out.println("Trafic direction: left/right. Price to change is " + chaPri + " and traffic direction is " + traDir + ".");
 					}
 					lanePro = 0;
@@ -238,16 +239,16 @@ public class Cross extends Agent {
 			switch (step) {
 				case 0:
 					// Send the cfp to all lanes
-					ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
 					for (int i = 0; i < laneAgents.length; ++i) {
 						cfp.addReceiver(laneAgents[i]);
 					} 
-					cfp.setContent(x + y);
-					cfp.setConversationId(conId);
+					cfp.setContent(x + y + traDir);
+					cfp.setConversationId(conIdTrade);
 					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 					myAgent.send(cfp);
 					// Prepare the template to get proposals
-					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conId),
+					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdTrade),
 	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
 					step = 1;
 					break;
@@ -258,7 +259,7 @@ public class Cross extends Agent {
 						// Reply received
 						if (reply.getPerformative() == ACLMessage.PROPOSE) {
 							lanePro++;
-							// This is an offer 
+							// This is an offer
 							String ori = reply.getContent().substring(0,1);
 							int offer = Integer.parseInt(reply.getContent().substring(1));
 //							if (bestSeller == null || offer < bestPrice) {
@@ -289,12 +290,12 @@ public class Cross extends Agent {
 					System.out.println("Decision based on: " + offers[0] + " + " + chaPri + " > " + offers[1] + ", from " + lanePro + " agent(s).");
 					if( offers[0]+chaPri>offers[1] ) { // vertical
 						chaPri = 2;
-						traDir = 0;
+						traDir = "v";
 						System.out.println("Trafic direction: up/down. Price to change is " + chaPri + " and traffic direction is " + traDir + ".");
 					}
 					else { // horizontal
 						chaPri = -2;
-						traDir = 1;
+						traDir = "h";
 						System.out.println("Trafic direction: left/right. Price to change is " + chaPri + " and traffic direction is " + traDir + ".");
 					}
 					lanePro = 0;
