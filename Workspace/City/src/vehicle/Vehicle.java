@@ -1,6 +1,8 @@
 package vehicle;
 
-public class Vehicle {
+import java.io.Serializable;
+
+public class Vehicle implements Serializable {
 	
 	private long waitTime;
 

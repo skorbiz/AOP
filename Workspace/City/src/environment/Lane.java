@@ -13,6 +13,7 @@ import jade.lang.acl.MessageTemplate;
 import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.Random;
+import java.io.IOException;
 import java.lang.System;
 
 
@@ -27,8 +28,6 @@ public class Lane extends Agent {
 	private String typeOfAgent = "lane";
 	// Queue for vehicle
 	private QueueLane queue;
-	// The catalogue of books for sale (maps the title of a book to its price)
-	private Hashtable catalogue;
 
 	// Put agent initializations here
 	protected void setup() {
@@ -68,10 +67,10 @@ public class Lane extends Agent {
 			}
 	    
 			// Add the behavior serving queries from cross agents
-			addBehaviour(new RequestsServer());
+			addBehaviour(new RequestPriceServer());
 	
 			// Add the behavior serving purchase orders from buyer agents
-			addBehaviour(new PurchaseOrdersServer());
+			addBehaviour(new RequestVehicleServer());
 		}
 		else {
 			// Make the agent terminate
@@ -92,19 +91,9 @@ public class Lane extends Agent {
 		// Printout a dismissal message
 		System.out.println("Lane-agent "+getAID().getName()+" terminating.");
 	}
-
-	
-//	public void updateCatalogue(final String title, final int price) {
-//		addBehaviour(new OneShotBehaviour() {
-//			public void action() {
-//				catalogue.put(title, new Integer(price));
-////				System.out.println(title+" inserted into catalogue. Price = "+price);
-//			}
-//		} );
-//	}
   
 	
-	private class RequestsServer extends CyclicBehaviour {
+	private class RequestPriceServer extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF);
 			ACLMessage msg = myAgent.receive(mt);
@@ -142,25 +131,71 @@ public class Lane extends Agent {
 	}  // End of inner class OfferRequestsServer
 	
 
-	private class PurchaseOrdersServer extends CyclicBehaviour {
+	private class RequestVehicleServer extends CyclicBehaviour {
+		public void action() {
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+			ACLMessage msg = myAgent.receive(mt);
+			
+			if (msg != null) {
+				String o = msg.getContent().substring(0,1);
+				String p = msg.getContent().substring(1,2);
+				
+				ACLMessage reply = msg.createReply();
+				
+				if ( 0==ori.compareTo(o) && 0==p.compareTo(pos) ) {
+					reply.setPerformative(ACLMessage.INFORM);
+					if ( 0==p.compareTo(dirIn) ) {
+						Vehicle vehicle = queue.retrieveVehicle();
+						reply.setContent("i" + dirOut + vehicle.toString());
+						try {
+							reply.setContentObject(vehicle);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+					else if ( 0==p.compareTo(dirOut) ) {
+						reply.setContent("o" + dirOut);
+					}
+				}
+				else {
+					// The requested book has been sold to another buyer in the meanwhile .
+					reply.setPerformative(ACLMessage.FAILURE);
+					reply.setContent("Not the right lane");
+				}
+				myAgent.send(reply);
+			}
+			else {
+				block();
+			}
+		}
+	}  // End of inner class OfferRequestsServer
+	
+	
+	private class InsertVehicleServer extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
 			ACLMessage msg = myAgent.receive(mt);
 			
 			if (msg != null) {
-				// ACCEPT_PROPOSAL Message received. Process it
-				String title = msg.getContent();
+				boolean test = false;
+				try {
+					Object veh = msg.getContentObject();
+					test = queue.insertVehicle( (Vehicle) veh );
+				}
+				catch (Exception ex) {
+						ex.printStackTrace();
+				}
+							
 				ACLMessage reply = msg.createReply();
-	      
-				Integer price = (Integer) catalogue.get(title);
-				if (price != null) {
+				
+				if ( test ) {
+					System.out.println("Lane INFORM");
 					reply.setPerformative(ACLMessage.INFORM);
-					System.out.println(title + " sold to agent " + msg.getSender().getName());
 				}
 				else {
-					// The requested book has been sold to another buyer in the meanwhile .
+					System.out.println("Lane FAILURE");
 					reply.setPerformative(ACLMessage.FAILURE);
-					reply.setContent("not-available");
+					reply.setContent("Can not insert vehicle");
 				}
 				myAgent.send(reply);
 			}
