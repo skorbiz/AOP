@@ -16,28 +16,21 @@ import gui.GUIInterface;
 
 public class GUIAgent extends Agent 
 {
-	// The type of the agent
-	private String typeOfAgent = "GUIAgent";
-	
-	//The gui interface
-	GUIInterface guiInterface = new GUIInterface();
+	private String typeOfAgent = "GUIAgent";			// The type of the agent
+	GUIInterface guiInterface = new GUIInterface();		// The gui interface
+    DFAgentDescription[] langeAgents;					// A list of all Lane agents
 
-
-	Behaviour guiUpdateBehavior = new TickerBehaviour( this, 5000 )
+	Behaviour guiUpdateBehavior = new TickerBehaviour( this, 2000 )
     {
-        public void onStart()
-        {
-        	System.out.println("Create GUI");
+		public void onStart(){
+        	System.out.println("Created GUI agent");
+			updateLaneAgents();
         }
         
-		protected void onTick() 
-        {
+		protected void onTick() {
 			System.out.println("UPDATE GUI");
-			try 
-			{
-				requestGuiParameters();
-			} 
-			catch (FIPAException e) { e.printStackTrace(); }
+			updateCars();
+			requestCars();
         }
     };
 	
@@ -45,7 +38,7 @@ public class GUIAgent extends Agent
 	protected void setup() 
 	{
 		// Printout a welcome message
-		System.out.println("GUI agent "+getAID().getName()+" is ready.");
+		System.out.println(typeOfAgent + getAID().getName()+" is ready.");
 	
 		//Start-up arguments 
 		Object[] args = getArguments();
@@ -61,64 +54,67 @@ public class GUIAgent extends Agent
 			doDelete();
 		}
 	}
-	
-	
-	private void requestGuiParameters() throws FIPAException
-	{
-		System.out.println("Requst gui parameters");
-		
+
+	private void updateLaneAgents()
+	{	
 		//Get lane agents
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd  = new ServiceDescription();
         sd.setType( "lane" );
         dfd.addServices(sd);
-        DFAgentDescription[] langeAgents;
-        langeAgents = DFService.search(this, dfd);
-        
+        try 
+        {
+		langeAgents = DFService.search(this, dfd);
+		} 
+        catch (FIPAException e) { e.printStackTrace(); }
+	}
+	
+	
+	private void requestCars()
+	{
 		//Sends mesages to all lanes
 	     ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
-	     msg.setContent("11");// "bla...bla...bla" );
+	     msg.setContent("11");
 	     //msg.setConversationId("cars in lane");
 		 //msg.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 	     for (int i = 0; i< langeAgents.length; i++)
 	        msg.addReceiver( langeAgents[i].getName() );
-	     send(msg);
-	     
-	     //Prepare to get proposals
-		 MessageTemplate msgReply = MessageTemplate.and(
-				 										MessageTemplate.MatchConversationId("cars in lane"),
-				 										MessageTemplate.MatchInReplyTo(msg.getReplyWith())
-				 										);
-	     
-
-	     //Update latest replys
-		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );
-		 if (reply == null)
-			 return;
-
-		 int offer1 = 0;
-		 int offer2 = 0;	
-		 
-		 String ori = reply.getContent().substring(0,1);
-		 int offer = Integer.parseInt(reply.getContent().substring(1));
-		 System.out.println(offer);
-		 if( 0==ori.compareTo("v") )
-			 offer1 += offer;
-				
-		 else if(0==ori.compareTo("h"))
-			 offer2 += offer;
-
-		int[] lights = new int[5*4];
-		int[] cars = new int[5*4*4];
-		
-		cars[0] = offer1;
-		cars[1] = offer2;
-		cars[2] = 42;
-		
-		guiInterface.updateFrame(lights, cars);
+	     send(msg);	     
 	}
 	
 	
-	
+	private void updateCars()
+	{
+		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );;
+		 int[] cars = new int[5*4*4];
+
+		 for(int i = 0; reply != null; i++)
+		 {
+			 System.out.println(i);
+			 
+			 int offer1 = 0;
+			 int offer2 = 0;
+			 
+			 
+			 //Johan Left work here! start working with identifing the propper lanes
+			 System.out.println(reply.getSender().getLocalName());
+			 
+			 String ori = reply.getContent().substring(0,1);
+			 int offer = Integer.parseInt(reply.getContent().substring(1));
+			 if( 0==ori.compareTo("v") )
+				 offer1 += offer;
+					
+			 else if(0==ori.compareTo("h"))
+				 offer2 += offer;
+				
+			cars[0] = offer1;
+			cars[1] = offer2;
+			cars[2] = 42;
+			 
+			reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );
+				
+		 }
+		guiInterface.updateCars( cars );
+	}
 	
 }
