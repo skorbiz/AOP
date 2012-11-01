@@ -1,3 +1,4 @@
+package gui;
 
 import java.awt.Color;
 import java.net.*;
@@ -11,7 +12,7 @@ import java.net.Socket;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
-public class GUImain 
+public class GUIInterface 
 {
 	private JFrame frame = new JFrame();
 	private GUISettings settings = new GUISettings();
@@ -19,12 +20,8 @@ public class GUImain
 	private GUIComponentLights lights;
 	private GUIComponentCars cars;
 	
-	public static void main(String[] args) throws Exception
-	{
-		GUImain main = new GUImain();
-	}
 	
-	public GUImain() throws Exception
+	public GUIInterface()
 	{
 		int[] lightsDefault = new int[settings.sizex*settings.sizey];
 		int[] carsDefault = new int[settings.sizex*settings.sizey*4];
@@ -39,6 +36,7 @@ public class GUImain
 	
 	public void updateFrame(int[] theLights, int[] theCars)
 	{
+		System.out.println(theCars[0] +"," +theCars[3]);
 		frame.remove(lights);
 		frame.remove(cars);
 		drawLights(theLights);

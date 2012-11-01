@@ -8,6 +8,8 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import jade.wrapper.AgentController;
 
+import gui.GUIInterface;
+
 public class MainAgent extends Agent {
 	
 	protected void setup() {
@@ -40,7 +42,7 @@ public class MainAgent extends Agent {
 	}
 
 	private class SetUpAgents extends OneShotBehaviour {
-		public void action() {
+		public void action()  {
 //			System.out.println("SetUpAgents OneShotBehaviour stated");
 			Object[] args;
 			
@@ -65,6 +67,12 @@ public class MainAgent extends Agent {
 			// Set-up cross agent
 			args = new Object[] {"1","1"};
 			createAgent("11","environment.Cross",args);
+
+			//Set-up gui agent
+			args = new Object[] {"GUI"};
+			createAgent("GUI","gui.GUIAgent", args);
+
+			
 			
 //			System.out.println("SetUpAgents OneShotBehaviour ended");
 		}
