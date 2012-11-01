@@ -78,28 +78,28 @@ public class Cross extends Agent {
 						myAgent.addBehaviour(new RequestLaneForPrices());	
 					}
 					else {
-						System.out.println("RequestLaneForMovingCar");
-//						System.out.println("Finding: " + agentToFind + " agents.");
-						// Update the list of seller agents
-						DFAgentDescription template = new DFAgentDescription();
-						ServiceDescription sd = new ServiceDescription();
-						sd.setType(agentToFind);
-						template.addServices(sd);
-						try {
-							DFAgentDescription[] result = DFService.search(myAgent, template); 
-							laneAgents = new AID[result.length];
-							System.out.println("Found " + result.length + " " + agentToFind + " agent(s).");
-							for (int i = 0; i < result.length; ++i) {
-								laneAgents[i] = result[i].getName();
-//								System.out.println(laneAgents[i].getName());
-							}
-						}
-						catch (FIPAException fe) {
-							fe.printStackTrace();
-						}
-	          
-						// Perform the request
-						myAgent.addBehaviour(new RequestLaneForMovingCar());	
+//						System.out.println("RequestLaneForMovingCar");
+////						System.out.println("Finding: " + agentToFind + " agents.");
+//						// Update the list of seller agents
+//						DFAgentDescription template = new DFAgentDescription();
+//						ServiceDescription sd = new ServiceDescription();
+//						sd.setType(agentToFind);
+//						template.addServices(sd);
+//						try {
+//							DFAgentDescription[] result = DFService.search(myAgent, template); 
+//							laneAgents = new AID[result.length];
+//							System.out.println("Found " + result.length + " " + agentToFind + " agent(s).");
+//							for (int i = 0; i < result.length; ++i) {
+//								laneAgents[i] = result[i].getName();
+////								System.out.println(laneAgents[i].getName());
+//							}
+//						}
+//						catch (FIPAException fe) {
+//							fe.printStackTrace();
+//						}
+//	          
+//						// Perform the request
+//						myAgent.addBehaviour(new RequestLaneForMovingCar());	
 					}
 				}
 			} );
