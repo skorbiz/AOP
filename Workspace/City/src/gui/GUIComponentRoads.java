@@ -1,9 +1,6 @@
 package gui;
 
-
-
-
-
+import general.Settings;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Line2D;
@@ -16,7 +13,7 @@ public class GUIComponentRoads extends JComponent
 	int windowSizeX;
 	int windowSizeY;
 		
-	public GUIComponentRoads(GUISettings settings)
+	public GUIComponentRoads(Settings settings)
 	{
 		sizeX = settings.sizex;
 		sizeY = settings.sizey;

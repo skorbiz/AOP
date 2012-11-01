@@ -1,5 +1,6 @@
 package gui;
 
+import general.Settings;
 
 
 
@@ -24,7 +25,7 @@ public class GUIComponentLights extends JComponent {
 	
 	int[] lights;
 	
-	public GUIComponentLights(GUISettings settings, int[] theLights)
+	public GUIComponentLights(Settings settings, int[] theLights)
 	{
 		sizeX = settings.sizex;
 		sizeY = settings.sizey;

@@ -1,11 +1,8 @@
 package gui;
 
-
-
-
+import general.Settings;
 
 import java.awt.*;
-
 import javax.swing.JComponent; 
 
 public class GUIComponentCars extends JComponent
@@ -17,7 +14,7 @@ public class GUIComponentCars extends JComponent
 	
 	int[] cars;
 	
-	public GUIComponentCars(GUISettings settings, int[] theCars)
+	public GUIComponentCars(Settings settings, int[] theCars)
 	{
 		sizeX = settings.sizex;
 		sizeY = settings.sizey;

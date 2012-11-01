@@ -12,10 +12,12 @@ import java.net.Socket;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
+import general.Settings;
+
 public class GUIInterface 
 {
 	private JFrame frame = new JFrame();
-	private GUISettings settings = new GUISettings();
+	private Settings settings = new Settings();
 
 	private GUIComponentLights lights;
 	private GUIComponentCars cars;
