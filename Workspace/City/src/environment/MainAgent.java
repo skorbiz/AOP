@@ -17,7 +17,6 @@ public class MainAgent extends Agent {
 		System.out.println("Main-agent " + getAID().getName() + " is ready.");
 
 		addBehaviour(new SetUpAgents());
-		
 	}
 	
 	// Put agent clean-up operations here
@@ -42,39 +41,34 @@ public class MainAgent extends Agent {
 	}
 
 	private class SetUpAgents extends OneShotBehaviour {
-		public void action()  {
+		public void action() {
 //			System.out.println("SetUpAgents OneShotBehaviour stated");
 			Object[] args;
 			
 			// Set-up lane agents
-			args = new Object[] {"h","1","0","1"};
-			createAgent("h101","environment.Lane",args);
-			args = new Object[] {"h","1","1","0"};
-			createAgent("h110","environment.Lane",args);
-			args = new Object[] {"h","1","1","2"};
-			createAgent("h112","environment.Lane",args);
-			args = new Object[] {"h","1","2","1"};
-			createAgent("h121","environment.Lane",args);
-			args = new Object[] {"v","1","0","1"};
-			createAgent("v101","environment.Lane",args);
-			args = new Object[] {"v","1","1","0"};
-			createAgent("v110","environment.Lane",args);
-			args = new Object[] {"v","1","1","2"};
-			createAgent("v112","environment.Lane",args);
-			args = new Object[] {"v","1","2","1"};
-			createAgent("v121","environment.Lane",args);
+			for(int i=0; i<4; i++) {
+				String stg = Integer.toString(i);
+				args = new Object[] {i};
+				createAgent("Lane"+stg,"environment.Lane",args);
+			}
+			
+			for(int i=-1; i>-5; i--) {
+				String stg = Integer.toString(i);
+				args = new Object[] {i};
+				createAgent("Lane"+stg,"environment.Lane",args);
+			}
 			
 			// Set-up cross agent
-			args = new Object[] {"1","1"};
-			createAgent("11","environment.Cross",args);
+			args = new Object[] {1};
+			createAgent("Cross"+"1","environment.Cross",args);
 
 			//Set-up gui agent
-			args = new Object[] {"GUI"};
-			createAgent("GUI","gui.GUIAgent", args);
-
-			
+//			args = new Object[] {"GUI"};
+//			createAgent("GUI","gui.GUIAgent", args);
 			
 //			System.out.println("SetUpAgents OneShotBehaviour ended");
+			
+			doDelete();
 		}
 	}
 }

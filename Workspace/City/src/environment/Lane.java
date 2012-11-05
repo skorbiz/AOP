@@ -14,16 +14,14 @@ import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.Random;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.System;
 
 
 public class Lane extends Agent {
 
 	// Lane identifiers
-	private String ori;
-	private String pos;
-	private String dirIn;
-	private String dirOut;
+	private int laneId;
 	// The type of the agent
 	private String typeOfAgent = "lane";
 	// Queue for vehicle
@@ -38,11 +36,9 @@ public class Lane extends Agent {
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			
-			ori = (String) args[0];
-			pos = (String) args[1];
-			dirIn = (String) args[2];
-			dirOut = (String) args[3];
-			System.out.println("Lane identifiers are: " + ori + pos + dirIn + dirOut);
+//			laneId = Integer.parseInt((String)args[0]);
+			laneId = (Integer) args[0];
+			System.out.println("Lane identifiers are: " + laneId);
 		
 			// Create the vehicle queue
 			queue = new QueueLane();
@@ -66,11 +62,11 @@ public class Lane extends Agent {
 				fe.printStackTrace();
 			}
 	    
-			// Add the behavior serving queries from cross agents
-			addBehaviour(new RequestPriceServer());
+			// Add the behavior serving lane id queries from cross agents
+			addBehaviour(new RequestLaneIdServer());
 	
-			// Add the behavior serving purchase orders from buyer agents
-			addBehaviour(new RequestVehicleServer());
+			// Add the behavior serving offer queries from cross agents
+			addBehaviour(new RequestOfferServer());
 		}
 		else {
 			// Make the agent terminate
@@ -93,74 +89,56 @@ public class Lane extends Agent {
 	}
   
 	
-	private class RequestPriceServer extends CyclicBehaviour {
+	private class RequestLaneIdServer extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF);
 			ACLMessage msg = myAgent.receive(mt);
 			
 			if (msg != null) {
 				// CFP Message received. Process it
-				String x = msg.getContent().substring(0,1);
-				String y = msg.getContent().substring(1,2);
-//				System.out.println("Lane " + getName() + " got message from cross: " + x + y);
+//				int crossId = Integer.parseInt(msg.getContent());
 				
+				// make reply
 				ACLMessage reply = msg.createReply();
-	
-				Integer price = (Integer) queue.getPrice();
+				reply.setPerformative(ACLMessage.PROPOSE);
+				reply.setContent(Integer.toString(laneId));
 				
-//				System.out.println( "(" + ori.compareTo("v") + " && " + x.compareTo(pos) + " && " + y.compareTo(dirIn) + ") || (" + ori.compareTo("h") + " && " + y.compareTo(pos) + " && " + x.compareTo(dirIn) + ")");
-				if ( (0==ori.compareTo("v") && 0==x.compareTo(pos) && 0==y.compareTo(dirIn)) || 
-					 (0==ori.compareTo("h") && 0==y.compareTo(pos) && 0==x.compareTo(dirIn)) ) {
-//					System.out.println("Lane PROPOSE.");
-					// The requested book is available for sale. Reply with the price
-					reply.setPerformative(ACLMessage.PROPOSE);
-					reply.setContent(ori + String.valueOf(price.intValue()));
-				}
-				else {
-					// The requested book is NOT available for sale.
-//					System.out.println("Lane REFUSE");
-					reply.setPerformative(ACLMessage.REFUSE);
-					reply.setContent("Not the right lane");
-				}
+//				if ( inLane(laneId, crossId)!=-1 || outLane(laneId, crossId)!=-1 ) {
+//					reply.setPerformative(ACLMessage.PROPOSE);
+//					reply.setContent(Integer.toString(laneId));
+//				}
+//				else {
+//					reply.setPerformative(ACLMessage.REFUSE);
+//					reply.setContent("Not the right lane");
+//				}
 				myAgent.send(reply);
 			}
 			else {
 				block();
 			}
 		}
-	}  // End of inner class OfferRequestsServer
+	}
 	
 
-	private class RequestVehicleServer extends CyclicBehaviour {
+	private class RequestOfferServer extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 			ACLMessage msg = myAgent.receive(mt);
 			
 			if (msg != null) {
-				String o = msg.getContent().substring(0,1);
-				String p = msg.getContent().substring(1,2);
-				
+				// make reply
 				ACLMessage reply = msg.createReply();
 				
-				if ( 0==ori.compareTo(o) && 0==p.compareTo(pos) ) {
+				int price = queue.getPrice();
+				
+				if ( price>=0 ) {
 					reply.setPerformative(ACLMessage.INFORM);
-					if ( 0==p.compareTo(dirIn) ) {
-						Vehicle vehicle = queue.retrieveVehicle();
-						reply.setContent("i" + dirOut + vehicle.toString());
-						try {
-							reply.setContentObject(vehicle);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-					else if ( 0==p.compareTo(dirOut) ) {
-						reply.setContent("o" + dirOut);
-					}
+					reply.setContent(Integer.toString(price));
 				}
 				else {
 					// The requested book has been sold to another buyer in the meanwhile .
 					reply.setPerformative(ACLMessage.FAILURE);
-					reply.setContent("Not the right lane");
+					reply.setContent("Lane out of order");
 				}
 				myAgent.send(reply);
 			}
@@ -168,59 +146,83 @@ public class Lane extends Agent {
 				block();
 			}
 		}
-	}  // End of inner class OfferRequestsServer
+	}
 	
 	
-	private class InsertVehicleServer extends CyclicBehaviour {
-		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-			ACLMessage msg = myAgent.receive(mt);
-			
-			if (msg != null) {
-				boolean test = false;
-				try {
-					Object veh = msg.getContentObject();
-					test = queue.insertVehicle( (Vehicle) veh );
-				}
-				catch (Exception ex) {
-						ex.printStackTrace();
-				}
-							
-				ACLMessage reply = msg.createReply();
-				
-				if ( test ) {
-					System.out.println("Lane INFORM");
-					reply.setPerformative(ACLMessage.INFORM);
-				}
-				else {
-					System.out.println("Lane FAILURE");
-					reply.setPerformative(ACLMessage.FAILURE);
-					reply.setContent("Can not insert vehicle");
-				}
-				myAgent.send(reply);
-			}
-			else {
-				block();
-			}
-		}
-	}  // End of inner class OfferRequestsServer
+//	if ( 0==p.compareTo(dirIn) ) {
+//		Vehicle vehicle = queue.retrieveVehicle();
+//		System.out.println(vehicle);
+//		if( vehicle!=null ) {
+//			try {
+//				reply.setContentObject(vehicle);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		reply.setContent("i" + dirOut);
+//	}
+//	else if ( 0==p.compareTo(dirOut) ) {
+//		reply.setContent("o" + dirIn);
+//	}
+	
+	
+//	private class InsertVehicleServer extends CyclicBehaviour {
+//		public void action() {
+//			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
+//			ACLMessage msg = myAgent.receive(mt);
+//			
+//			if (msg != null) {
+//				System.out.println("InsertVehicleServer");
+//				boolean test = false;
+//				try {
+//					Object veh = msg.getContentObject();
+//					test = queue.insertVehicle( (Vehicle) veh );
+//				}
+//				catch (Exception ex) {
+//						ex.printStackTrace();
+//				}
+//							
+//				ACLMessage reply = msg.createReply();
+//				
+//				if ( test ) {
+//					System.out.println("Lane INFORM");
+//					reply.setPerformative(ACLMessage.INFORM);
+//				}
+//				else {
+//					System.out.println("Lane FAILURE");
+//					reply.setPerformative(ACLMessage.FAILURE);
+//					reply.setContent("Can not insert vehicle");
+//				}
+//				myAgent.send(reply);
+//			}
+//			else {
+//				block();
+//			}
+//		}
+//	}
 	
 	
 	private class QueueLane {
 		ArrayList<Vehicle> queue = new ArrayList<Vehicle>();
+		boolean running = true;
 		Random random = new Random();
 		
 		public QueueLane() {
 		}
 		
+		public int numberOfVehicles() {
+			return queue.size();
+		}
+		
 		public int getPrice() {
-			int price = 0;
-			long curtime = System.currentTimeMillis();
-			for(int i=0; i<queue.size(); i++) {
-				price += (curtime - queue.get(i).getWaitTime());
+			int price = -1;
+			if( running==true ) {
+				long curtime = System.currentTimeMillis();
+				for(int i=0; i<queue.size(); i++) {
+					price += (curtime - queue.get(i).getWaitTime());
+				}
 			}
 			return price/1000;
-//			return random.nextInt(10);
 		}
 		
 		public boolean insertVehicle(Vehicle vehicle) {
@@ -238,5 +240,14 @@ public class Lane extends Agent {
 			return queue.remove(0);
 		}
 		
+		public void startQueue() {
+			running = true;
+		}
+		public void stopQueue() {
+			running = false;
+		}
+		public boolean statusQueue() {
+			return running;
+		}
 	}
 }

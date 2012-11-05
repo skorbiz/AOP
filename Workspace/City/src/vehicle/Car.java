@@ -1,6 +1,8 @@
 package vehicle;
 
-public class Car extends Vehicle {
+import java.io.Serializable;
+
+public class Car extends Vehicle implements Serializable {
 
 	public Car()
 	{
