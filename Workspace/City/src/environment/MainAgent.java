@@ -63,8 +63,8 @@ public class MainAgent extends Agent {
 			createAgent("Cross"+"1","environment.Cross",args);
 
 			//Set-up gui agent
-//			args = new Object[] {"GUI"};
-//			createAgent("GUI","gui.GUIAgent", args);
+			args = new Object[] {"GUI"};
+			createAgent("GUI","gui.GUIAgent", args);
 			
 //			System.out.println("SetUpAgents OneShotBehaviour ended");
 			

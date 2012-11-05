@@ -22,18 +22,18 @@ public class GUIInterface
 	private GUIComponentLights lights;
 	private GUIComponentCars cars;
 	
+	//Data containg lights and cars information
+	int[] lightsData = new int[settings.sizex*settings.sizey];
+	int[] carsData = new int[settings.sizex*settings.sizey*4];
 	
 	public GUIInterface()
 	{
-		int[] lightsDefault = new int[settings.sizex*settings.sizey];
-		int[] carsDefault = new int[settings.sizex*settings.sizey*4];
-		for(int i = 0; i < carsDefault.length; i++)
-			carsDefault[i] = i;
+		for(int i = 0; i < carsData.length; i++)
+			carsData[i] = i;
 		
 		createFrame();
-		drawLights(lightsDefault);
-		drawCars(carsDefault);
-		
+		drawLights();
+		drawCars();
 	}
 
 	private void createFrame()
@@ -45,7 +45,6 @@ public class GUIInterface
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLocationRelativeTo(null); //Center of screen
 		frame.setBackground(Color.lightGray);
-		//frame.addMouseListener(this);
 		
 		//Draw the roads
 		GUIComponentRoads Roads = new GUIComponentRoads(settings);
@@ -56,14 +55,15 @@ public class GUIInterface
 	//Update the drawn cars
 	public void updateLights(int[] theLights)
 	{
+		mergeDataArrays(theLights, lightsData);
 		frame.remove(lights);
-		drawCars(theLights);
+		drawCars();
 	}
 
 	//Draw the lights
-	private void drawLights(int[] theLights)
+	private void drawLights()
 	{
-		lights = new GUIComponentLights(settings, theLights);
+		lights = new GUIComponentLights(settings, lightsData);
 		frame.add(lights);
 		frame.setVisible(true);
 	}
@@ -71,16 +71,27 @@ public class GUIInterface
 	//Update the drawn cars
 	public void updateCars(int[] theCars)
 	{
+		mergeDataArrays(theCars, carsData);
 		frame.remove(cars);
-		drawCars(theCars);
+		drawCars();
 	}
 	
 	//Draw cars
-	private void drawCars(int[] theCars)
+	private void drawCars()
 	{
-		cars = new GUIComponentCars(settings, theCars);
+		cars = new GUIComponentCars(settings, carsData);
 		frame.add(cars);
 		frame.setVisible(true);
+	}
+	
+	private void mergeDataArrays(int[] inputNew, int[] outputOld)
+	{
+		if(inputNew.length != outputOld.length)
+			System.out.println("GUI failded in merging data arrays");
+		
+		for(int i = 0; i < inputNew.length; i++)
+			if(inputNew[i] != -1)
+				outputOld[i] = inputNew[i];
 	}
 	
 }

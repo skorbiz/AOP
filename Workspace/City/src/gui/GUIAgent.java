@@ -12,6 +12,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import general.Settings;
 import gui.GUIInterface;
 
 public class GUIAgent extends Agent 
@@ -64,7 +65,7 @@ public class GUIAgent extends Agent
         dfd.addServices(sd);
         try 
         {
-		langeAgents = DFService.search(this, dfd);
+        	langeAgents = DFService.search(this, dfd);
 		} 
         catch (FIPAException e) { e.printStackTrace(); }
 	}
@@ -73,10 +74,8 @@ public class GUIAgent extends Agent
 	private void requestCars()
 	{
 		//Sends mesages to all lanes
-	     ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
-	     msg.setContent("11");
-	     //msg.setConversationId("cars in lane");
-		 //msg.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+	     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+	     msg.setContent(Settings.GuiToLaneRequestCars);
 	     for (int i = 0; i< langeAgents.length; i++)
 	        msg.addReceiver( langeAgents[i].getName() );
 	     send(msg);	     
@@ -85,8 +84,11 @@ public class GUIAgent extends Agent
 	
 	private void updateCars()
 	{
-		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );;
-		 int[] cars = new int[5*4*4];
+		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );
+		 
+		 int[] cars = new int[5*4*4];				// Create array for the recived data
+		 for(int i = 0; i < cars.length; i++)		// Initialises with -1 to indicate no change
+			 cars[i] = -1;							//	
 
 		 for(int i = 0; reply != null; i++)
 		 {
@@ -94,7 +96,6 @@ public class GUIAgent extends Agent
 			 
 			 int offer1 = 0;
 			 int offer2 = 0;
-			 
 			 
 			 //Johan Left work here! start working with identifing the propper lanes
 			 System.out.println(reply.getSender().getLocalName());
