@@ -4,13 +4,19 @@ public class Settings
 {
 
 	/**** GENERAL SETTINGS *****************************/
-	public static int sizex = 1;
-	public static int sizey = 1;
+	public static int sizex = 3;
+	public static int sizey = 3;
 	
 	/**** GUI SETTINGS *********************************/
 	public static int sizexFrame = (sizex+1)*100;
 	public static int sizeyFrame = (sizey+1)*100;
 	public static String nameFrame = "Trafik simulering";
+	
+	
+	/**** JADE CONTENT MESAGES *************************/
+	public static String GuiToLaneRequestCars = "GUI requests number of cars in all lanes";
+	public static String CrossToLaneRequestLocalID = "Cross request all lanes local ID";
+	public static String CrossToLaneRequesOffers = "Requesting the price for all lanes";
 	
 	
 	/**** SUPPORT FUNCTIONS ****************************/
