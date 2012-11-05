@@ -23,7 +23,16 @@ public class Settings
 	
 	
 	/**** SUPPORT FUNCTIONS ****************************/
-	/**** used to create input and output arrays *******/
+	/**** Used generally *******************************/
+	public static int covertLocalLaneNameToInt(String name)
+	{		
+		int temp = Integer.parseInt(name.substring(4));
+		return temp;
+	}
+	
+	
+	/**** SUPPORT FUNCTIONS ***************************/
+	/**** for indexing input and output lanes into 4 **/
 	public static int inLane(int laneId, int crossId) 
 	{
 		int temp = -1;

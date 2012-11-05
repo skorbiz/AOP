@@ -19,7 +19,12 @@ public class GUIAgent extends Agent
 {
 	private String typeOfAgent = "GUIAgent";			// The type of the agent
 	GUIInterface guiInterface = new GUIInterface();		// The gui interface
-    DFAgentDescription[] langeAgents;					// A list of all Lane agents
+    DFAgentDescription[] laneAgents;					// A list of all Lane agents
+    DFAgentDescription[] crossAgents;					// A list of all cross agents
+
+    //Jade communications
+    private String lanesRelyWithNumberOfCars = "Reply with number of cars";
+    private String crossRelyWithLights = "Reply with number of cars";
 
 	Behaviour guiUpdateBehavior = new TickerBehaviour( this, 2000 )
     {
@@ -56,28 +61,53 @@ public class GUIAgent extends Agent
 		}
 	}
 
+	//Get lane agents	
 	private void updateLaneAgents()
 	{	
-		//Get lane agents
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd  = new ServiceDescription();
         sd.setType( "lane" );
         dfd.addServices(sd);
         try 
         {
-        	langeAgents = DFService.search(this, dfd);
+        	laneAgents = DFService.search(this, dfd);
 		} 
         catch (FIPAException e) { e.printStackTrace(); }
 	}
-	
-	
+
+	//Get cross agents
+	private void updateCrossAgents()
+	{	
+        DFAgentDescription dfd = new DFAgentDescription();
+        ServiceDescription sd  = new ServiceDescription();
+        sd.setType( "cross" );
+        dfd.addServices(sd);
+        try 
+        {
+        	crossAgents = DFService.search(this, dfd);
+		} 
+        catch (FIPAException e) { e.printStackTrace(); }
+	}
+
+	//Sends mesages to all lanes	
 	private void requestCars()
 	{
-		//Sends mesages to all lanes
 	     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+	     msg.setReplyWith(lanesRelyWithNumberOfCars);
 	     msg.setContent(Settings.GuiToLaneRequestCars);
-	     for (int i = 0; i< langeAgents.length; i++)
-	        msg.addReceiver( langeAgents[i].getName() );
+	     for (int i = 0; i< laneAgents.length; i++)
+	        msg.addReceiver( laneAgents[i].getName() );
+	     send(msg);	     
+	}
+
+	//Sends mesages to all cross
+	private void requestLights()
+	{
+	     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+	     msg.setReplyWith(crossRelyWithLights);
+	     msg.setContent(Settings.GuiToLaneRequestCars);
+	     for (int i = 0; i< crossAgents.length; i++)
+	        msg.addReceiver( crossAgents[i].getName() );
 	     send(msg);	     
 	}
 	
@@ -89,33 +119,28 @@ public class GUIAgent extends Agent
 			 cars[i] = -1;													//	
 
 		 //Convert all recived ansewers to fit in the data array
-		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.INFORM) );
-		 if(reply != null)
-			 System.out.println(reply.getContent());
-		 
+		 MessageTemplate mt = MessageTemplate.and(  
+					MessageTemplate.MatchPerformative( ACLMessage.INFORM ),
+					MessageTemplate.MatchInReplyTo(lanesRelyWithNumberOfCars));
+	
+		 ACLMessage reply = receive( mt );
+
 		 for(int i = 0; reply != null; i++)
-		 {
-			 System.out.println(i);
+		 {			 			 
+			 //Get lane numbers if not outer lanes
+			 int laneNumber = Settings.covertLocalLaneNameToInt(reply.getSender().getLocalName() );
+			 if(laneNumber < 0)
+			 {
+				 reply = receive( mt );
+				 continue;
+			 }
 			 
-			 /*int offer1 = 0;
-			 int offer2 = 0;
-			 
-			 //Johan Left work here! start working with identifing the propper lanes
-			 System.out.println(reply.getSender().getLocalName());
-			 
-			 String ori = reply.getContent().substring(0,1);
-			 int offer = Integer.parseInt(reply.getContent().substring(1));
-			 if( 0==ori.compareTo("v") )
-				 offer1 += offer;
-					
-			 else if(0==ori.compareTo("h"))
-				 offer2 += offer;
-				
-			cars[0] = offer1;
-			cars[1] = offer2;
-			cars[2] = 42;
-			 */
-			reply = receive( MessageTemplate.MatchPerformative(ACLMessage.INFORM) );
+			 //Get and save number of cars in the lane
+			 int carsInLane = Integer.parseInt(reply.getContent());
+			 cars[laneNumber] = carsInLane;
+						 
+			 //Retrieve new message
+			 reply = receive( mt );
 				
 		 }
 		guiInterface.updateCars( cars );
