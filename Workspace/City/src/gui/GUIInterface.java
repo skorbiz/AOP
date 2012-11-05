@@ -35,15 +35,6 @@ public class GUIInterface
 		drawCars(carsDefault);
 		
 	}
-	
-	public void updateFrame(int[] theLights, int[] theCars)
-	{
-		System.out.println(theCars[0] +"," +theCars[3]);
-		frame.remove(lights);
-		frame.remove(cars);
-		drawLights(theLights);
-		drawCars(theCars);
-	}
 
 	private void createFrame()
 	{	
@@ -62,12 +53,26 @@ public class GUIInterface
 		frame.setVisible(true);	
 	}
 	
+	//Update the drawn cars
+	public void updateLights(int[] theLights)
+	{
+		frame.remove(lights);
+		drawCars(theLights);
+	}
+
 	//Draw the lights
 	private void drawLights(int[] theLights)
 	{
 		lights = new GUIComponentLights(settings, theLights);
 		frame.add(lights);
 		frame.setVisible(true);
+	}
+
+	//Update the drawn cars
+	public void updateCars(int[] theCars)
+	{
+		frame.remove(cars);
+		drawCars(theCars);
 	}
 	
 	//Draw cars
