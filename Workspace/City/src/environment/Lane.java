@@ -71,6 +71,9 @@ public class Lane extends Agent {
 			
 			// Add the behavior serving offer queries from gui agents
 			addBehaviour(new RequestNumberVehicleServer());
+			
+			// Add the behavior serving space in queue from cross agents
+			addBehaviour(new RequestNumberEmptySpacesServer());
 		}
 		else {
 			// Make the agent terminate
@@ -194,6 +197,38 @@ public class Lane extends Agent {
 	}
 	
 	
+	private class RequestNumberEmptySpacesServer extends CyclicBehaviour {
+		public void action() {
+			MessageTemplate mt = MessageTemplate.and(  
+													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													MessageTemplate.MatchContent(Settings.CrossToLaneRequesSpaces));
+
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null  )
+			{
+				// make reply
+				ACLMessage reply = msg.createReply();
+				int numberOfFreeSpace = 10-queue.getNumberOfVehicles();
+				
+				if ( numberOfFreeSpace>=0 ) 
+				{
+					reply.setPerformative(ACLMessage.INFORM);
+					reply.setContent(Integer.toString(numberOfFreeSpace));
+				}
+				else 
+				{
+					reply.setPerformative(ACLMessage.FAILURE);
+					reply.setContent("Lane out of order");
+				}
+				myAgent.send(reply);
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	
 //	if ( 0==p.compareTo(dirIn) ) {
 //		Vehicle vehicle = queue.retrieveVehicle();
 //		System.out.println(vehicle);
@@ -211,22 +246,23 @@ public class Lane extends Agent {
 //	}
 	
 	
-//	private class InsertVehicleServer extends CyclicBehaviour {
-//		public void action() {
-//			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
-//			ACLMessage msg = myAgent.receive(mt);
-//			
-//			if (msg != null) {
-//				System.out.println("InsertVehicleServer");
-//				boolean test = false;
-//				try {
-//					Object veh = msg.getContentObject();
-//					test = queue.insertVehicle( (Vehicle) veh );
-//				}
-//				catch (Exception ex) {
-//						ex.printStackTrace();
-//				}
-//							
+	private class InsertVehicleServer extends CyclicBehaviour {
+		public void action() {
+			MessageTemplate mt = MessageTemplate.and(  
+													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													MessageTemplate.MatchContent(Settings.CrossToLaneRequesSpaces));
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) {
+				System.out.println("InsertVehicleServer");
+				boolean test = false;
+				try {
+					Object veh = msg.getContentObject();
+					test = queue.insertVehicle( (Vehicle) veh );
+				}
+				catch (Exception ex) {
+						ex.printStackTrace();
+				}
+							
 //				ACLMessage reply = msg.createReply();
 //				
 //				if ( test ) {
@@ -239,12 +275,12 @@ public class Lane extends Agent {
 //					reply.setContent("Can not insert vehicle");
 //				}
 //				myAgent.send(reply);
-//			}
-//			else {
-//				block();
-//			}
-//		}
-//	}
+			}
+			else {
+				block();
+			}
+		}
+	}
 	
 	
 	private class QueueLane {

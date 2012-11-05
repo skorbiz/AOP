@@ -17,6 +17,7 @@ public class Settings
 	public static String GuiToLaneRequestCars = "GUI requests number of cars in all lanes";
 	public static String CrossToLaneRequestLocalID = "Cross request all lanes local ID";
 	public static String CrossToLaneRequesOffers = "Requesting the price for all lanes";
+	public static String CrossToLaneRequesSpaces = "Requesting the number of free spaces in queue from lane";
 	public static String CrossToLaneRequestRetrieveVehicle = "Requesting vehicle from lane";
 	public static String CrossToLaneRequestInsertVehicle = "Sending vehicle from lane";
 	

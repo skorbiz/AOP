@@ -32,7 +32,7 @@ public class Cross extends Agent {
 	// Price for changing direction
 	private int chaPri = 2;
 	
-	private int ticks = 0;
+	private int ticks = -1;
   
 	// Put agent initializations here
 	protected void setup() {
@@ -48,11 +48,14 @@ public class Cross extends Agent {
 			// Add a TickerBehaviour that schedules a request to seller agents every minute
 			addBehaviour(new TickerBehaviour(this, 5000) {
 				protected void onTick() {
-					if( ticks==0 ) {
+					if( ticks==-1 ) {
 						addBehaviour(new FindingRightLanes());
 					}
-					else {
+					else if( ticks%3==0 ) {
 						addBehaviour(new RequestLaneOffers());
+					}
+					else {
+						addBehaviour(new MovingCars());
 					}
 					ticks++;
 				}
@@ -272,8 +275,7 @@ public class Cross extends Agent {
 					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
 					cfp.addReceiver(accOutLaneAgents[0]);
 					cfp.addReceiver(accOutLaneAgents[1]);
-					
-					cfp.setContent(Settings.CrossToLaneRequestRetrieveVehicle);
+					cfp.setContent(Settings.CrossToLaneRequesSpaces);
 					cfp.setConversationId(conIdMove);
 					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 					myAgent.send(cfp);
@@ -299,7 +301,10 @@ public class Cross extends Agent {
 						repliesCnt++;
 						if (repliesCnt >= inLaneAgents.length/2) {
 							// We received all replies
-							step = 3;
+//							step = 3;
+							System.out.println("Free spaces in queue: " + emptySpacesInLane[0] + " and " + emptySpacesInLane[1]);
+							System.out.println("");
+							step = 6;
 						}
 					}
 					else {
@@ -316,7 +321,7 @@ public class Cross extends Agent {
 					else if( emptySpacesInLane[1]>0 ) {
 						cfp2.addReceiver(inLaneAgents[1]);	
 					}
-					cfp2.setContent(Settings.CrossToLaneRequestInsertVehicle);
+					cfp2.setContent(Settings.CrossToLaneRequestRetrieveVehicle);
 					cfp2.setConversationId(conIdMove);
 					cfp2.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 					myAgent.send(cfp2);
@@ -375,7 +380,7 @@ public class Cross extends Agent {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					replyOutLane.setContent("2");
+					replyOutLane.setContent(Settings.CrossToLaneRequestInsertVehicle);
 					replyOutLane.setConversationId(conIdMove);
 					replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 					myAgent.send(replyOutLane);
