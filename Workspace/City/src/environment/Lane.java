@@ -149,6 +149,35 @@ public class Lane extends Agent {
 	}
 	
 	
+	private class RequestNumberVehicleServer extends CyclicBehaviour {
+		public void action() {
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.PROXY);
+			ACLMessage msg = myAgent.receive(mt);
+			
+			if (msg != null) {
+				// make reply
+				ACLMessage reply = msg.createReply();
+				
+				int numberOfVehicles = queue.getNumberOfVehicles();
+				
+				if ( numberOfVehicles>=0 ) {
+					reply.setPerformative(ACLMessage.INFORM);
+					reply.setContent(Integer.toString(numberOfVehicles));
+				}
+				else {
+					// The requested book has been sold to another buyer in the meanwhile .
+					reply.setPerformative(ACLMessage.FAILURE);
+					reply.setContent("Lane out of order");
+				}
+				myAgent.send(reply);
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	
 //	if ( 0==p.compareTo(dirIn) ) {
 //		Vehicle vehicle = queue.retrieveVehicle();
 //		System.out.println(vehicle);
@@ -210,7 +239,7 @@ public class Lane extends Agent {
 		public QueueLane() {
 		}
 		
-		public int numberOfVehicles() {
+		public int getNumberOfVehicles() {
 			return queue.size();
 		}
 		

@@ -49,36 +49,10 @@ public class Cross extends Agent {
 				protected void onTick() {
 					if( ticks==0 ) {
 						addBehaviour(new FindingRightLanes());
-   						// Perform the request
-//						myAgent.addBehaviour(new FindingRightLanes());	
 					}
 					else {
 						addBehaviour(new RequestLaneOffers());
 					}
-//					else {
-//						System.out.println("RequestLaneForMovingCar");
-//////						System.out.println("Finding: " + agentToFind + " agents.");
-//						// Update the list of seller agents
-//						DFAgentDescription template = new DFAgentDescription();
-//						ServiceDescription sd = new ServiceDescription();
-//						sd.setType(agentToFind);
-//						template.addServices(sd);
-//						try {
-//							DFAgentDescription[] result = DFService.search(myAgent, template); 
-//							laneAgents = new AID[result.length];
-//							System.out.println("Found " + result.length + " " + agentToFind + " agent(s).");
-//							for (int i = 0; i < result.length; ++i) {
-//								laneAgents[i] = result[i].getName();
-////								System.out.println(laneAgents[i].getName());
-//							}
-//						}
-//						catch (FIPAException fe) {
-//							fe.printStackTrace();
-//						}
-//	          
-//						// Perform the request
-//						myAgent.addBehaviour(new RequestLaneForMovingCar());	
-//					}
 					ticks++;
 				}
 			} );
@@ -125,7 +99,7 @@ public class Cross extends Agent {
 					step = 1;
 					break;
 				case 1: // Send the cfp to all lanes
-					ACLMessage cfp = new ACLMessage(ACLMessage.QUERY_IF);
+					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
 					for (int i = 0; i < laneAgents.length; ++i) {
 						cfp.addReceiver(laneAgents[i]);
 					} 
@@ -190,59 +164,63 @@ public class Cross extends Agent {
 
 		public void action() {
 			switch (step) {
-			case 0: // Send the cfp to all lanes
-				ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
-				for (int i = 0; i < inLaneAgents.length; ++i) {
-					cfp.addReceiver(inLaneAgents[i]);
-				} 
-				cfp.setContent(Integer.toString(crossId));
-				cfp.setConversationId(conIdOffer);
-				cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-				myAgent.send(cfp);
-				// Prepare the template to get proposals
-				mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdOffer),
-                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
-				step = 1;
-				break;
-			case 1: // Receive all proposals/refusals from lane agents
-				ACLMessage reply = myAgent.receive(mt);
-				if (reply != null) {
-					// Reply received
-					if (reply.getPerformative() == ACLMessage.INFORM) {
-						// This is an offer
-						int laneOffer = Integer.parseInt(reply.getContent());
-						for(int i=0; i<inLaneAgents.length; i++) {
-							if( inLaneAgents[i].compareTo(reply.getSender())==0 ) {
-								offers[i] = laneOffer;
-								break;
+				case 0: // Send the cfp to all lanes
+					offers[0] = -1;
+					offers[1] = -1;
+					offers[2] = -1;
+					offers[3] = -1;
+					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
+					for (int i = 0; i < inLaneAgents.length; ++i) {
+						cfp.addReceiver(inLaneAgents[i]);
+					} 
+					cfp.setContent(Integer.toString(crossId));
+					cfp.setConversationId(conIdOffer);
+					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					myAgent.send(cfp);
+					// Prepare the template to get proposals
+					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdOffer),
+	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+					step = 1;
+					break;
+				case 1: // Receive all proposals/refusals from lane agents
+					ACLMessage reply = myAgent.receive(mt);
+					if (reply != null) {
+						// Reply received
+						if (reply.getPerformative() == ACLMessage.INFORM) {
+							// This is an offer
+							int laneOffer = Integer.parseInt(reply.getContent());
+							for(int i=0; i<inLaneAgents.length; i++) {
+								if( inLaneAgents[i].compareTo(reply.getSender())==0 ) {
+									offers[i] = laneOffer;
+									break;
+								}
 							}
 						}
-					}
-					repliesCnt++;
-					if (repliesCnt >= inLaneAgents.length) {
-						// We received all replies
-						System.out.println(inLaneAgents[0] + " offers: " + offers[0]);
-						System.out.println(inLaneAgents[1] + " offers: " + offers[1]);
-						System.out.println(inLaneAgents[2] + " offers: " + offers[2]);
-						System.out.println(inLaneAgents[3] + " offers: " + offers[3]);
-						if( offers[0]+offers[1]+chaPri>offers[2]+offers[3] ) { // vertical
-							chaPri = 2;
-							traDir = "v";
-							System.out.println("Trafic direction: up/down (" + traDir + ")");
+						repliesCnt++;
+						if (repliesCnt >= inLaneAgents.length) {
+							// We received all replies
+							System.out.println(inLaneAgents[0] + " offers: " + offers[0]);
+							System.out.println(inLaneAgents[1] + " offers: " + offers[1]);
+							System.out.println(inLaneAgents[2] + " offers: " + offers[2]);
+							System.out.println(inLaneAgents[3] + " offers: " + offers[3]);
+							if( offers[0]+offers[1]+chaPri>offers[2]+offers[3] ) { // vertical
+								chaPri = 2;
+								traDir = "v";
+								System.out.println("Trafic direction: up/down (" + traDir + ")");
+							}
+							else { // horizontal
+								chaPri = -2;
+								traDir = "h";
+								System.out.println("Trafic direction: left/right (" + traDir + ")");
+							}
+							System.out.println("");
+							step = 2;
 						}
-						else { // horizontal
-							chaPri = -2;
-							traDir = "h";
-							System.out.println("Trafic direction: left/right (" + traDir + ")");
-						}
-						System.out.println("");
-						step = 2;
 					}
-				}
-				else {
-					block();
-				}
-				break;
+					else {
+						block();
+					}
+					break;
 			}
 		}
 
@@ -253,35 +231,88 @@ public class Cross extends Agent {
 	}
 	
 	
-	
-	private class RequestLaneForMovingCar extends Behaviour {
-		private int step = 0;
-		private MessageTemplate mt;
-		private String conIdMove = "lane-Move";
-		
-		public void action() {
-			switch (step) {
-				case 0:
-					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
-					for (int i = 0; i < inLaneAgents.length; ++i) {
-						cfp.addReceiver(inLaneAgents[i]);
-					} 
-					cfp.setContent(Integer.toString(crossId));
-					cfp.setConversationId(conIdMove);
-					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-					myAgent.send(cfp);
-					// Prepare the template to get proposals
-					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
-	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
-					step = 1;
-					break;
-			}
-		}
-		
-		public boolean done() {
-			return (step == 4);
-		}
-	}
+//	private class MovingCars extends Behaviour {
+//		private int step = 0;
+//		private MessageTemplate mt;
+//		private int repliesCnt = 0;
+//		private String conIdMove = "lane-Move";
+//		private int[] emptySpacesInLane = new int[2];
+//		private AID[] accInLaneAgents = new AID[2];
+//		private AID[] accOutLaneAgents = new AID[2];
+//		
+//		public void action() {
+//			switch (step) {
+//				case 0:
+//					emptySpacesInLane[0] = -1;
+//					emptySpacesInLane[1] = -1;
+//					if( traDir.compareTo("v")==0 ) {
+//						accInLaneAgents[0] = inLaneAgents[0];
+//						accInLaneAgents[1] = inLaneAgents[1];
+//						accOutLaneAgents[0] = outLaneAgents[0];
+//						accOutLaneAgents[1] = outLaneAgents[1];
+//					}
+//					else {
+//						accInLaneAgents[0] = inLaneAgents[2];
+//						accInLaneAgents[1] = inLaneAgents[3];
+//						accOutLaneAgents[0] = outLaneAgents[2];
+//						accOutLaneAgents[1] = outLaneAgents[3];
+//					}
+//					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
+//					cfp.addReceiver(accOutLaneAgents[0]);
+//					cfp.addReceiver(accOutLaneAgents[1]);
+//					
+//					cfp.setContent(Integer.toString(crossId));
+//					cfp.setConversationId(conIdMove);
+//					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+//					myAgent.send(cfp);
+//					// Prepare the template to get proposals
+//					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
+//											 MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+//					step = 1;
+//					break;
+//				case 1: // Receive all proposals/refusals from lane agents
+//					ACLMessage reply = myAgent.receive(mt);
+//					if (reply != null) {
+//						// Reply received
+//						if (reply.getPerformative() == ACLMessage.INFORM) {
+//							// This is an offer
+//							int emptySpaces = Integer.parseInt(reply.getContent());
+//							if( accOutLaneAgents[0].compareTo(reply.getSender())==0 ) {
+//								emptySpacesInLane[0] = emptySpaces;
+//							}
+//							else {
+//								emptySpacesInLane[1] = emptySpaces;
+//							}
+//						}
+//						repliesCnt++;
+//						if (repliesCnt >= inLaneAgents.length/2) {
+//							// We received all replies
+//							step = 2;
+//						}
+//					}
+//					else {
+//						block();
+//					}
+//					break;
+//				case 2:
+//					ACLMessage cfp2 = new ACLMessage(ACLMessage.REQUEST);
+//					cfp2.addReceiver(inLaneAgents[0]);
+//					cfp2.addReceiver(inLaneAgents[1]);
+//					cfp2.setContent(Integer.toString(crossId));
+//					cfp2.setConversationId(conIdMove);
+//					cfp2.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+//					myAgent.send(cfp2);
+//					// Prepare the template to get proposals
+//					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
+//					MessageTemplate.MatchInReplyTo(cfp2.getReplyWith()));
+//					break;
+//			}
+//		}
+//		
+//		public boolean done() {
+//			return (step == 4);
+//		}
+//	}
 	
 	
 	

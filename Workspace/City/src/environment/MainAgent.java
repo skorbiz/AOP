@@ -45,13 +45,13 @@ public class MainAgent extends Agent {
 //			System.out.println("SetUpAgents OneShotBehaviour stated");
 			Object[] args;
 			
-			// Set-up lane agents
+			// Set-up normal lane agents
 			for(int i=0; i<4; i++) {
 				String stg = Integer.toString(i);
 				args = new Object[] {i};
 				createAgent("Lane"+stg,"environment.Lane",args);
 			}
-			
+			// Set-up special lane agents
 			for(int i=-1; i>-5; i--) {
 				String stg = Integer.toString(i);
 				args = new Object[] {i};
