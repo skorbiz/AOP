@@ -170,6 +170,9 @@ public class Cross extends Agent {
 					offers[1] = -1;
 					offers[2] = -1;
 					offers[3] = -1;
+					step = 1;
+					break;
+				case 1:
 					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
 					for (int i = 0; i < inLaneAgents.length; ++i) {
 						cfp.addReceiver(inLaneAgents[i]);
@@ -181,9 +184,9 @@ public class Cross extends Agent {
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdOffer),
 	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
-					step = 1;
+					step = 2;
 					break;
-				case 1: // Receive all proposals/refusals from lane agents
+				case 2: // Receive all proposals/refusals from lane agents
 					ACLMessage reply = myAgent.receive(mt);
 					if (reply != null) {
 						// Reply received
@@ -215,7 +218,7 @@ public class Cross extends Agent {
 								System.out.println("Trafic direction: left/right (" + traDir + ")");
 							}
 							System.out.println("");
-							step = 2;
+							step = 3;
 						}
 					}
 					else {
@@ -226,243 +229,168 @@ public class Cross extends Agent {
 		}
 
 		public boolean done() {
-			return (step == 2);
+			return (step == 3);
 		}
 		
 	}
 	
 	
-//	private class MovingCars extends Behaviour {
-//		private int step = 0;
-//		private MessageTemplate mt;
-//		private int repliesCnt = 0;
-//		private String conIdMove = "lane-Move";
-//		private int[] emptySpacesInLane = new int[2];
-//		private AID[] accInLaneAgents = new AID[2];
-//		private AID[] accOutLaneAgents = new AID[2];
-//		
-//		public void action() {
-//			switch (step) {
-//				case 0:
-//					emptySpacesInLane[0] = -1;
-//					emptySpacesInLane[1] = -1;
-//					if( traDir.compareTo("v")==0 ) {
-//						accInLaneAgents[0] = inLaneAgents[0];
-//						accInLaneAgents[1] = inLaneAgents[1];
-//						accOutLaneAgents[0] = outLaneAgents[0];
-//						accOutLaneAgents[1] = outLaneAgents[1];
-//					}
-//					else {
-//						accInLaneAgents[0] = inLaneAgents[2];
-//						accInLaneAgents[1] = inLaneAgents[3];
-//						accOutLaneAgents[0] = outLaneAgents[2];
-//						accOutLaneAgents[1] = outLaneAgents[3];
-//					}
-//					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
-//					cfp.addReceiver(accOutLaneAgents[0]);
-//					cfp.addReceiver(accOutLaneAgents[1]);
-//					
-//					cfp.setContent(Integer.toString(crossId));
-//					cfp.setConversationId(conIdMove);
-//					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-//					myAgent.send(cfp);
-//					// Prepare the template to get proposals
-//					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
-//											 MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
-//					step = 1;
-//					break;
-//				case 1: // Receive all proposals/refusals from lane agents
-//					ACLMessage reply = myAgent.receive(mt);
-//					if (reply != null) {
-//						// Reply received
-//						if (reply.getPerformative() == ACLMessage.INFORM) {
-//							// This is an offer
-//							int emptySpaces = Integer.parseInt(reply.getContent());
-//							if( accOutLaneAgents[0].compareTo(reply.getSender())==0 ) {
-//								emptySpacesInLane[0] = emptySpaces;
-//							}
-//							else {
-//								emptySpacesInLane[1] = emptySpaces;
-//							}
-//						}
-//						repliesCnt++;
-//						if (repliesCnt >= inLaneAgents.length/2) {
-//							// We received all replies
-//							step = 2;
-//						}
-//					}
-//					else {
-//						block();
-//					}
-//					break;
-//				case 2:
-//					ACLMessage cfp2 = new ACLMessage(ACLMessage.REQUEST);
-//					cfp2.addReceiver(inLaneAgents[0]);
-//					cfp2.addReceiver(inLaneAgents[1]);
-//					cfp2.setContent(Integer.toString(crossId));
-//					cfp2.setConversationId(conIdMove);
-//					cfp2.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-//					myAgent.send(cfp2);
-//					// Prepare the template to get proposals
-//					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
-//					MessageTemplate.MatchInReplyTo(cfp2.getReplyWith()));
-//					break;
-//			}
-//		}
-//		
-//		public boolean done() {
-//			return (step == 4);
-//		}
-//	}
+	private class MovingCars extends Behaviour {
+		private int step = 0;
+		private MessageTemplate mt;
+		private int repliesCnt = 0;
+		private String conIdMove = "lane-Move";
+		private int[] emptySpacesInLane = new int[2];
+		private AID[] accInLaneAgents = new AID[2];
+		private AID[] accOutLaneAgents = new AID[2];
+		private Object[] vehicles = new Object[2];
+		private int vehiclesToMove = 0;
+		
+		public void action() {
+			switch (step) {
+				case 0:
+					emptySpacesInLane[0] = -1;
+					emptySpacesInLane[1] = -1;
+					vehicles[0] = null;
+					vehicles[1] = null;
+					repliesCnt = 0;
+					if( traDir.compareTo("v")==0 ) {
+						accInLaneAgents[0] = inLaneAgents[0];
+						accInLaneAgents[1] = inLaneAgents[1];
+						accOutLaneAgents[0] = outLaneAgents[0];
+						accOutLaneAgents[1] = outLaneAgents[1];
+					}
+					else {
+						accInLaneAgents[0] = inLaneAgents[2];
+						accInLaneAgents[1] = inLaneAgents[3];
+						accOutLaneAgents[0] = outLaneAgents[2];
+						accOutLaneAgents[1] = outLaneAgents[3];
+					}
+					step = 1;
+					break;
+				case 1:
+					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
+					cfp.addReceiver(accOutLaneAgents[0]);
+					cfp.addReceiver(accOutLaneAgents[1]);
+					
+					cfp.setContent(Settings.CrossToLaneRequestRetrieveVehicle);
+					cfp.setConversationId(conIdMove);
+					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					myAgent.send(cfp);
+					// Prepare the template to get proposals
+					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
+											 MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+					step = 2;
+					break;
+				case 2: // Receive all proposals/refusals from lane agents
+					ACLMessage reply = myAgent.receive(mt);
+					if (reply != null) {
+						// Reply received
+						if (reply.getPerformative() == ACLMessage.INFORM) {
+							// This is an offer
+							int emptySpaces = Integer.parseInt(reply.getContent());
+							if( accOutLaneAgents[0].compareTo(reply.getSender())==0 ) {
+								emptySpacesInLane[0] = emptySpaces;
+							}
+							else {
+								emptySpacesInLane[1] = emptySpaces;
+							}
+						}
+						repliesCnt++;
+						if (repliesCnt >= inLaneAgents.length/2) {
+							// We received all replies
+							step = 3;
+						}
+					}
+					else {
+						block();
+					}
+					break;
+				case 3:
+					vehiclesToMove = 0;
+					ACLMessage cfp2 = new ACLMessage(ACLMessage.REQUEST);
+					if( emptySpacesInLane[0]>0 ) {
+						cfp2.addReceiver(inLaneAgents[0]);
+						vehiclesToMove++;
+					}
+					else if( emptySpacesInLane[1]>0 ) {
+						cfp2.addReceiver(inLaneAgents[1]);	
+					}
+					cfp2.setContent(Settings.CrossToLaneRequestInsertVehicle);
+					cfp2.setConversationId(conIdMove);
+					cfp2.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					myAgent.send(cfp2);
+					// Prepare the template to get proposals
+					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
+					MessageTemplate.MatchInReplyTo(cfp2.getReplyWith()));
+					if( vehiclesToMove>0 )
+					{
+						System.out.println(myAgent.getLocalName() + ": Out lanes have no space for vehicle!");
+						step = 6;
+					}
+					else {
+						step = 4;
+					}
+					break;
+				case 4:
+					repliesCnt = 0;
+					ACLMessage replyInLane = myAgent.receive(mt);
+					if (replyInLane != null) {
+						// Reply received
+						if (replyInLane.getPerformative() == ACLMessage.INFORM) {
+							try {
+								// This is an offer
+								if( accInLaneAgents[0].compareTo(replyInLane.getSender())==0 ) {
+									vehicles[0] = replyInLane.getContentObject();
+								}
+								else {
+									vehicles[1] = replyInLane.getContentObject();
+								}
+							}
+							catch (Exception ex) {
+								ex.printStackTrace();
+							}
+						}
+						vehiclesToMove--;
+						if( vehiclesToMove == repliesCnt ) {
+							// We received all replies
+							step = 5;
+						}
+					}
+					else {
+						block();
+					}
+					break;
+				case 5:
+					ACLMessage replyOutLane = new ACLMessage(ACLMessage.REQUEST);
+					try {
+						if( vehicles[0]!=null ) {
+							replyOutLane.addReceiver(accOutLaneAgents[1]);
+							replyOutLane.setContentObject((Serializable)vehicles[0]);
+						}
+						else if( vehicles[0]!=null ) {
+							replyOutLane.addReceiver(accOutLaneAgents[0]);
+							replyOutLane.setContentObject((Serializable)vehicles[1]);
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					replyOutLane.setContent("2");
+					replyOutLane.setConversationId(conIdMove);
+					replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					myAgent.send(replyOutLane);
+					// Prepare the template to get proposals
+					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
+					MessageTemplate.MatchInReplyTo(replyOutLane.getReplyWith()));
+					step = 6;
+					break;
+					
+			}
+		}
+		
+		public boolean done() {
+			return (step == 6);
+		}
+	}
 	
-	
-	
-//	private class RequestLaneForMovingCar extends Behaviour {
-//		private Object[] vehicles = new Object[2];	// The offers from the four lanes, up/down or left/right
-//		private AID[] revievers = new AID[2];
-////		private AID bestSeller; // The agent who provides the best offer 
-////		private int bestPrice;  // The best offered price
-//		private int repliesCnt = 0; // The counter of replies from seller agents
-//		private int vehCnt = 0;
-//		private MessageTemplate mt; // The template to receive replies
-//		private int step = 0;
-//	
-//		public void action() {
-//			switch (step) {
-//				case 0:
-//					System.out.println("Sending ACL messages to all lanes");
-//					// reset numbers of proposes from lanes
-//					lanePro = 0;
-//					// Send the cfp to all lanes
-//					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
-//					for (int i = 0; i < laneAgents.length; ++i) {
-//						cfp.addReceiver(laneAgents[i]);
-//					}
-//					if ( 0==traDir.compareTo("v") ) {
-//						cfp.setContent( traDir + x);	
-//					}
-//					else {
-//						cfp.setContent( traDir + y);
-//					}
-//					cfp.setConversationId(conIdTrade);
-//					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-//					myAgent.send(cfp);
-//					// Prepare the template to get proposals
-//					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdTrade),
-//	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
-//					step = 1;
-//					break;
-//				case 1:
-//					// Receive all proposals/refusals from lane agents
-//					ACLMessage reply = myAgent.receive(mt);
-//					if (reply != null) {
-//						// Reply received
-//						if (reply.getPerformative() == ACLMessage.INFORM) {
-//							// This is an offer
-//							lanePro++;
-//							String dir = reply.getContent().substring(0,1);
-//							int from = Integer.parseInt(reply.getContent().substring(1));
-//							System.out.println("dir: " + dir + " from: " + from);
-//							if( 0==dir.compareTo("i") ) {
-//								try {
-//									System.out.println(reply.getContentObject());
-////									if ( Integer.parseInt(x)<from ) {
-////										vehicles[0] = reply.getContentObject();
-////										System.out.println("vehicles[0]");
-////									}
-////									else {
-////										vehicles[1] = reply.getContentObject();
-////										System.out.println("vehicles[1]");
-////									}
-//								}
-//								catch (Exception ex) {
-//									ex.printStackTrace();
-//								}
-//							}
-//							else if( 0==dir.compareTo("o") ) {
-//								if ( Integer.parseInt(x)>from ) {
-//									revievers[0] = reply.getSender();
-//									System.out.println(reply.getSender());
-//								}
-//								else {
-//									revievers[1] = reply.getSender();
-//									System.out.println(reply.getSender());
-//								}								
-//							}
-//						}
-//						repliesCnt++;
-//						if (repliesCnt >= laneAgents.length) {
-//							// We received all replies
-//							System.out.println("Got anwsers from all lanes");
-//							step = 4; 
-//						}
-//					}
-//					else {
-//						block();
-//					}
-//					break;
-////				case 2:
-////					System.out.println(revievers[0]);
-////					System.out.println(revievers[1]);
-////					
-////					System.out.println("Setup for moving car");
-////					// Send the purchase order to the seller that provided the best offer
-////					ACLMessage order1 = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-////					order1.addReceiver(revievers[0]);
-////					order1.setConversationId(conIdTrade);
-////					try {
-////						order1.setContentObject((Serializable) vehicles[0]);
-////					} catch (IOException e) {
-////						e.printStackTrace();
-////					}
-////					order1.setReplyWith("order"+System.currentTimeMillis());
-////					myAgent.send(order1);
-////					// Send the purchase order to the seller that provided the best offer
-////					ACLMessage order2 = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-////					order2.addReceiver(revievers[1]);
-////					order2.setConversationId(conIdTrade);
-////					try {
-////						order2.setContentObject((Serializable) vehicles[1]);
-////					} catch (IOException e) {
-////						e.printStackTrace();
-////					}
-////					order2.setReplyWith("order"+System.currentTimeMillis());
-////					myAgent.send(order2);
-////					
-////					// Prepare the template to get the purchase order reply
-////					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdTrade),
-////							MessageTemplate.MatchInReplyTo(order1.getReplyWith()));
-////					
-////					vehCnt = 2;
-////					step = 3;
-////					break;
-////				case 3:
-////					System.out.println("Moving car");
-////					// Receive the purchase order reply
-////					reply = myAgent.receive(mt);
-////					if (reply != null) {
-////						// Purchase order reply received
-////						if (reply.getPerformative() == ACLMessage.INFORM) {
-////							// Purchase successful. We can terminate
-////							System.out.println("Successfully moved vehicle.");
-////						}
-////						else {
-////							System.out.println("Attempt failed: vehicle is not inserted.");
-////						}
-////						vehCnt--;
-////						if ( vehCnt==0 )
-////							step = 4;
-////							System.out.println("Car moved");
-////					}
-////					else {
-////						block();
-////					}
-////					break;
-//			}        
-//		}
-//	
-//		public boolean done() {
-//			return (step == 4);
-//		}
-//	}
 }
