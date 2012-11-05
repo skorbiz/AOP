@@ -85,7 +85,7 @@ public class GUIAgent extends Agent
 	
 	private void updateCars()
 	{
-		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );;
+		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );
 		 int[] cars = new int[5*4*4];
 
 		 for(int i = 0; reply != null; i++)
@@ -94,7 +94,6 @@ public class GUIAgent extends Agent
 			 
 			 int offer1 = 0;
 			 int offer2 = 0;
-			 
 			 
 			 //Johan Left work here! start working with identifing the propper lanes
 			 System.out.println(reply.getSender().getLocalName());
