@@ -104,7 +104,7 @@ public class Cross extends Agent {
 					for (int i = 0; i < laneAgents.length; ++i) {
 						cfp.addReceiver(laneAgents[i]);
 					} 
-					cfp.setContent(Integer.toString(crossId));
+					cfp.setContent(Settings.CrossToLaneRequestLocalID);
 					cfp.setConversationId(conIdFind);
 					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 					myAgent.send(cfp);
@@ -174,7 +174,7 @@ public class Cross extends Agent {
 					for (int i = 0; i < inLaneAgents.length; ++i) {
 						cfp.addReceiver(inLaneAgents[i]);
 					} 
-					cfp.setContent(Integer.toString(crossId));
+					cfp.setContent(Settings.CrossToLaneRequesOffers);
 					cfp.setConversationId(conIdOffer);
 					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 					myAgent.send(cfp);

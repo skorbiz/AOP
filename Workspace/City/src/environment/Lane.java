@@ -1,6 +1,7 @@
 package environment;
 import vehicle.*;
 
+import general.Settings;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
@@ -91,10 +92,10 @@ public class Lane extends Agent {
 	
 	private class RequestLaneIdServer extends CyclicBehaviour {
 		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF);
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 			ACLMessage msg = myAgent.receive(mt);
 			
-			if (msg != null) {
+			if( msg != null && msg.getContent().compareTo(Settings.CrossToLaneRequestLocalID)==0 ) {
 				// CFP Message received. Process it
 //				int crossId = Integer.parseInt(msg.getContent());
 				
@@ -125,7 +126,7 @@ public class Lane extends Agent {
 			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 			ACLMessage msg = myAgent.receive(mt);
 			
-			if (msg != null) {
+			if (msg != null && msg.getContent().compareTo(Settings.CrossToLaneRequesOffers)==0 ) {
 				// make reply
 				ACLMessage reply = msg.createReply();
 				
@@ -151,10 +152,10 @@ public class Lane extends Agent {
 	
 	private class RequestNumberVehicleServer extends CyclicBehaviour {
 		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.PROXY);
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
 			ACLMessage msg = myAgent.receive(mt);
 			
-			if (msg != null) {
+			if (msg != null && msg.getContent().compareTo(Settings.GuiToLaneRequestCars)==0 ) {
 				// make reply
 				ACLMessage reply = msg.createReply();
 				

@@ -8,6 +8,7 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import jade.wrapper.AgentController;
 
+import general.Settings;
 import gui.GUIInterface;
 
 public class MainAgent extends Agent {
@@ -45,14 +46,17 @@ public class MainAgent extends Agent {
 //			System.out.println("SetUpAgents OneShotBehaviour stated");
 			Object[] args;
 			
+			int numberOfNormalInLanes = Settings.sizex*Settings.sizey*4;
+			int numberOfSpecialInLanes = Settings.sizex*2 + Settings.sizey*2;
+			
 			// Set-up normal lane agents
-			for(int i=0; i<4; i++) {
+			for(int i=0; i<numberOfNormalInLanes; i++) {
 				String stg = Integer.toString(i);
 				args = new Object[] {i};
 				createAgent("Lane"+stg,"environment.Lane",args);
 			}
 			// Set-up special lane agents
-			for(int i=-1; i>-5; i--) {
+			for(int i=-1; i>-numberOfSpecialInLanes-1; i--) {
 				String stg = Integer.toString(i);
 				args = new Object[] {i};
 				createAgent("Lane"+stg,"environment.Lane",args);
