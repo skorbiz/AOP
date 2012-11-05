@@ -75,7 +75,7 @@ public class GUIAgent extends Agent
 	{
 		//Sends mesages to all lanes
 	     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-	     msg.setContent(Settings.GUItoLaneRequestCars);
+	     msg.setContent(Settings.GuiToLaneRequestCars);
 	     for (int i = 0; i< langeAgents.length; i++)
 	        msg.addReceiver( langeAgents[i].getName() );
 	     send(msg);	     
