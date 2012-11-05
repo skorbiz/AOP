@@ -68,6 +68,9 @@ public class Lane extends Agent {
 	
 			// Add the behavior serving offer queries from cross agents
 			addBehaviour(new RequestOfferServer());
+			
+			// Add the behavior serving offer queries from gui agents
+			addBehaviour(new RequestNumberVehicleServer());
 		}
 		else {
 			// Make the agent terminate
