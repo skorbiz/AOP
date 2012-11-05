@@ -84,17 +84,20 @@ public class GUIAgent extends Agent
 	
 	private void updateCars()
 	{		 
-		 int[] cars = new int[5*4*4];				// Create array for the recived data
-		 for(int i = 0; i < cars.length; i++)		// Initialises with -1 to indicate no change
-			 cars[i] = -1;							//	
+		 int[] cars = new int[Settings.sizex*Settings.sizey*4];				// Create array for the recived data
+		 for(int i = 0; i < cars.length; i++)								// Initialises with -1 to indicate no change
+			 cars[i] = -1;													//	
 
 		 //Convert all recived ansewers to fit in the data array
-		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );
+		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.INFORM) );
+		 if(reply != null)
+			 System.out.println(reply.getContent());
+		 
 		 for(int i = 0; reply != null; i++)
 		 {
 			 System.out.println(i);
 			 
-			 int offer1 = 0;
+			 /*int offer1 = 0;
 			 int offer2 = 0;
 			 
 			 //Johan Left work here! start working with identifing the propper lanes
@@ -111,8 +114,8 @@ public class GUIAgent extends Agent
 			cars[0] = offer1;
 			cars[1] = offer2;
 			cars[2] = 42;
-			 
-			reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );
+			 */
+			reply = receive( MessageTemplate.MatchPerformative(ACLMessage.INFORM) );
 				
 		 }
 		guiInterface.updateCars( cars );

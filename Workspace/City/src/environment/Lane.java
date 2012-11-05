@@ -94,11 +94,15 @@ public class Lane extends Agent {
   
 	
 	private class RequestLaneIdServer extends CyclicBehaviour {
-		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+		public void action() 
+		{
+			MessageTemplate mt = MessageTemplate.and(  
+					MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+					MessageTemplate.MatchContent(Settings.CrossToLaneRequestLocalID));
+
 			ACLMessage msg = myAgent.receive(mt);
 			
-			if( msg != null && msg.getContent().compareTo(Settings.CrossToLaneRequestLocalID)==0 ) {
+			if( msg != null ) {
 				// CFP Message received. Process it
 //				int crossId = Integer.parseInt(msg.getContent());
 				
@@ -125,11 +129,15 @@ public class Lane extends Agent {
 	
 
 	private class RequestOfferServer extends CyclicBehaviour {
-		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+		public void action() 
+		{	
+			MessageTemplate mt = MessageTemplate.and(  
+					MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+					MessageTemplate.MatchContent(Settings.CrossToLaneRequesOffers));
+
 			ACLMessage msg = myAgent.receive(mt);
 			
-			if (msg != null && msg.getContent().compareTo(Settings.CrossToLaneRequesOffers)==0 ) {
+			if (msg != null) {
 				// make reply
 				ACLMessage reply = msg.createReply();
 				
@@ -149,27 +157,31 @@ public class Lane extends Agent {
 			else {
 				block();
 			}
+			
 		}
 	}
 	
 	
 	private class RequestNumberVehicleServer extends CyclicBehaviour {
 		public void action() {
-			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.REQUEST);
+			MessageTemplate mt = MessageTemplate.and(  
+													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													MessageTemplate.MatchContent(Settings.GuiToLaneRequestCars));
+
 			ACLMessage msg = myAgent.receive(mt);
-			
-			if (msg != null && msg.getContent().compareTo(Settings.GuiToLaneRequestCars)==0 ) {
+			if (msg != null  )
+			{
 				// make reply
 				ACLMessage reply = msg.createReply();
-				
 				int numberOfVehicles = queue.getNumberOfVehicles();
 				
-				if ( numberOfVehicles>=0 ) {
+				if ( numberOfVehicles>=0 ) 
+				{
 					reply.setPerformative(ACLMessage.INFORM);
 					reply.setContent(Integer.toString(numberOfVehicles));
 				}
-				else {
-					// The requested book has been sold to another buyer in the meanwhile .
+				else 
+				{
 					reply.setPerformative(ACLMessage.FAILURE);
 					reply.setContent("Lane out of order");
 				}
