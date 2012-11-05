@@ -83,13 +83,13 @@ public class GUIAgent extends Agent
 	
 	
 	private void updateCars()
-	{
-		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );
-		 
+	{		 
 		 int[] cars = new int[5*4*4];				// Create array for the recived data
 		 for(int i = 0; i < cars.length; i++)		// Initialises with -1 to indicate no change
 			 cars[i] = -1;							//	
 
+		 //Convert all recived ansewers to fit in the data array
+		 ACLMessage reply = receive( MessageTemplate.MatchPerformative(ACLMessage.PROPOSE) );
 		 for(int i = 0; reply != null; i++)
 		 {
 			 System.out.println(i);
