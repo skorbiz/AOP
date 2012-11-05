@@ -1,6 +1,7 @@
 package environment;
 
 import vehicle.Vehicle;
+import general.Settings;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
@@ -145,8 +146,8 @@ public class Cross extends Agent {
 						if (reply.getPerformative() == ACLMessage.PROPOSE) {
 							// This is an offer
 							int laneId = Integer.parseInt(reply.getContent());
-							int testIn = inLane(laneId, crossId);
-							int testOut = outLane(laneId, crossId);
+							int testIn = Settings.inLane(laneId, crossId);
+							int testOut = Settings.outLane(laneId, crossId);
 							if( testIn!=-1 ) {
 								inLaneAgents[testIn] = reply.getSender();
 							}
@@ -433,62 +434,4 @@ public class Cross extends Agent {
 //			return (step == 4);
 //		}
 //	}
-	
-
-	private int gridX=1;
-	private int gridY=1;
-	
-	public int inLane(int laneId, int crossId) {
-		int returner = -1;
-		if( laneId>=(crossId-1)*4 && laneId<crossId*4 ) {
-			returner = laneId%4;
-		}
-		return returner;
-	}
-	
-	public int outLane(int laneId, int crossId) {
-		int returner = -1;
-		
-		// special case if cross on edge
-		if( laneId!=0 ) { // lane 0 is never output lane
-			if( laneId<0 ) {
-				if( crossId<=gridX && -1*crossId==laneId ) { // on top edge
-					returner = 0;
-//					System.out.print("SPECIAL0 ");
-				}
-				else if( crossId>=(gridX*gridY-gridX) && -1*(gridX+gridY+(crossId-1)%gridX+1)==laneId ) { // on down edge
-					returner = 1;
-//					System.out.print("SPECIAL1 ");
-				}
-				else if( (crossId-1)%gridX==0 && -1*(gridX+gridY+gridX+crossId/gridX)==laneId ) { // on left edge
-					returner = 2;
-//					System.out.print("SPECIAL2 ");
-				}
-				else if( crossId%gridY==0 && -1*(gridX+crossId/gridX)==laneId ) { // on right edge
-					returner = 3;
-//					System.out.print("SPECIAL3 ");
-				}
-			}
-			
-			// normal case if cross is not on edge
-			else if( (crossId-gridX)*4-1==laneId ) { // up
-				returner = 0;
-//				System.out.print("NORMAL0 ");
-			}
-			else if( (crossId+gridX)*4-3==laneId ) { // down
-				returner = 1;
-//				System.out.print("NORMAL1 ");
-			}
-			else if( ((crossId-1)*4-2)==laneId ) { // left
-				returner = 2;
-//				System.out.print("NORMAL2 ");
-			}
-			else if( ((crossId+1)*4-4)==laneId ) { // right
-				returner = 3;
-//				System.out.print("NORMAL3 ");
-			}
-		}
-		
-		return returner;
-	}
 }

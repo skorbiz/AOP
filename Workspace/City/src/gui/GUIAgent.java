@@ -64,7 +64,7 @@ public class GUIAgent extends Agent
         dfd.addServices(sd);
         try 
         {
-		langeAgents = DFService.search(this, dfd);
+        	langeAgents = DFService.search(this, dfd);
 		} 
         catch (FIPAException e) { e.printStackTrace(); }
 	}

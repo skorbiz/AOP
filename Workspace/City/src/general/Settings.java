@@ -2,10 +2,73 @@ package general;
 
 public class Settings 
 {
-	public int sizex = 5;
-	public int sizey = 4;
-	public int sizexFrame = (sizex+1)*100;
-	public int sizeyFrame = (sizey+1)*100;
 
-	public String nameFrame = "Trafik simulering";
+	/**** GENERAL SETTINGS *****************************/
+	public static int sizex = 1;
+	public static int sizey = 1;
+	
+	/**** GUI SETTINGS *********************************/
+	public static int sizexFrame = (sizex+1)*100;
+	public static int sizeyFrame = (sizey+1)*100;
+	public static String nameFrame = "Trafik simulering";
+	
+	
+	/**** SUPPORT FUNCTIONS ****************************/
+	/**** used to create input and output arrays *******/
+	public static int inLane(int laneId, int crossId) 
+	{
+		int temp = -1;
+		
+		if( laneId >= (crossId-1)*4 && laneId < crossId*4 ) 
+			temp = laneId%4;
+		
+		return temp;
+	}
+	
+	
+	public static int outLane(int laneId, int crossId) 
+	{
+		int temp = -1;
+		
+		// special case if cross on edge
+		if( laneId != 0 ) { // lane 0 is never output lane
+			if( laneId<0 ) {
+				if( crossId<=sizex && -1*crossId==laneId ) { // on top edge
+					temp = 0;
+//					System.out.print("SPECIAL0 ");
+				}
+				else if( crossId>=(sizex*sizey-sizex) && -1*(sizex+sizey+(crossId-1)%sizex+1)==laneId ) { // on down edge
+					temp = 1;
+//					System.out.print("SPECIAL1 ");
+				}
+				else if( (crossId-1)%sizex==0 && -1*(sizex+sizey+sizex+crossId/sizex)==laneId ) { // on left edge
+					temp = 2;
+//					System.out.print("SPECIAL2 ");
+				}
+				else if( crossId%sizey==0 && -1*(sizex+crossId/sizex)==laneId ) { // on right edge
+					temp = 3;
+//					System.out.print("SPECIAL3 ");
+				}
+			}
+			
+			// normal case if cross is not on edge
+			else if( (crossId-sizex)*4-1==laneId ) { // up
+				temp = 0;
+//				System.out.print("NORMAL0 ");
+			}
+			else if( (crossId+sizex)*4-3==laneId ) { // down
+				temp = 1;
+//				System.out.print("NORMAL1 ");
+			}
+			else if( ((crossId-1)*4-2)==laneId ) { // left
+				temp = 2;
+//				System.out.print("NORMAL2 ");
+			}
+			else if( ((crossId+1)*4-4)==laneId ) { // right
+				temp = 3;
+//				System.out.print("NORMAL3 ");
+			}
+		}
+		return temp;
+	}
 }
