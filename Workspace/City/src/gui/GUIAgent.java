@@ -30,13 +30,16 @@ public class GUIAgent extends Agent
     {
 		public void onStart(){
         	System.out.println("Created GUI agent");
+			updateCrossAgents();
 			updateLaneAgents();
         }
         
 		protected void onTick() {
-			System.out.println("UPDATE GUI");
 			updateCars();
+			updateLights();
 			requestCars();
+			requestLights();
+
         }
     };
 	
@@ -100,16 +103,46 @@ public class GUIAgent extends Agent
 	     send(msg);	     
 	}
 
-	//Sends mesages to all cross
+	//Sends mesages to all crosses
 	private void requestLights()
 	{
 	     ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 	     msg.setReplyWith(crossRelyWithLights);
-	     msg.setContent(Settings.GuiToLaneRequestCars);
+	     msg.setContent(Settings.GuiToCrossRequestLights);
 	     for (int i = 0; i< crossAgents.length; i++)
 	        msg.addReceiver( crossAgents[i].getName() );
 	     send(msg);	     
 	}
+	
+	private void updateLights()
+	{		 
+		 int[] lights = new int[Settings.sizex*Settings.sizey];				// Create array for the recived data
+		 for(int i = 0; i < lights.length; i++)								// Initialises with -1 to indicate no change
+			 lights[i] = -1;												//	
+
+		 //Convert all recived ansewers to fit in the data array
+		 MessageTemplate mt = MessageTemplate.and(  
+					MessageTemplate.MatchPerformative( ACLMessage.INFORM ),
+					MessageTemplate.MatchInReplyTo(crossRelyWithLights));
+	
+		 ACLMessage reply = receive( mt );
+
+		 for(int i = 0; reply != null; i++)
+		 {			 			 
+			 //Get lane numbers if not outer lanes
+			 int crossNumber = Settings.covertLocalCrossNameToInt(reply.getSender().getLocalName() );
+			 
+			 //Get and save number of cars in the lane
+			 int light = Integer.parseInt(reply.getContent());
+			 lights[crossNumber] = light;
+						 
+			 //Retrieve new message
+			 reply = receive( mt );
+				
+		 }			 
+		 guiInterface.updateLights( lights );
+	}
+	
 	
 	
 	private void updateCars()

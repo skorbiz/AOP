@@ -4,8 +4,8 @@ public class Settings
 {
 
 	/**** GENERAL SETTINGS *****************************/
-	public static int sizex = 1;
-	public static int sizey = 1;
+	public static int sizex = 2;
+	public static int sizey = 2;
 	
 	/**** GUI SETTINGS *********************************/
 	public static int sizexFrame = (sizex+1)*100;
@@ -14,12 +14,13 @@ public class Settings
 	
 	
 	/**** JADE CONTENT MESAGES *************************/
-	public static String GuiToLaneRequestCars = "GUI requests number of cars in all lanes";
-	public static String CrossToLaneRequestLocalID = "Cross request all lanes local ID";
-	public static String CrossToLaneRequesOffers = "Requesting the price for all lanes";
-	public static String CrossToLaneRequesSpaces = "Requesting the number of free spaces in queue from lane";
-	public static String CrossToLaneRequestRetrieveVehicle = "Requesting vehicle from lane";
-	public static String CrossToLaneRequestInsertVehicle = "Sending vehicle from lane";
+	public static String GuiToLaneRequestCars 				= "GUI requests number of cars in all lanes";
+	public static String GuiToCrossRequestLights 			= "GUI requests lights in all crosses";
+	public static String CrossToLaneRequestLocalID 			= "Cross request all lanes local ID";
+	public static String CrossToLaneRequesOffers 			= "Requesting the price for all lanes";
+	public static String CrossToLaneRequesSpaces 			= "Requesting the number of free spaces in queue from lane";
+	public static String CrossToLaneRequestRetrieveVehicle 	= "Requesting vehicle from lane";
+	public static String CrossToLaneRequestInsertVehicle 	= "Sending vehicle from lane";
 	
 	
 	/**** SUPPORT FUNCTIONS ****************************/
@@ -27,6 +28,12 @@ public class Settings
 	public static int covertLocalLaneNameToInt(String name)
 	{		
 		int temp = Integer.parseInt(name.substring(4));
+		return temp;
+	}
+	
+	public static int covertLocalCrossNameToInt(String name)
+	{		
+		int temp = Integer.parseInt(name.substring(5));
 		return temp;
 	}
 	
