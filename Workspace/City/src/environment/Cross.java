@@ -225,7 +225,6 @@ public class Cross extends Agent {
 						System.out.println(inLaneAgents[1] + " offers: " + offers[1]);
 						System.out.println(inLaneAgents[2] + " offers: " + offers[2]);
 						System.out.println(inLaneAgents[3] + " offers: " + offers[3]);
-						System.out.println("");
 						if( offers[0]+offers[1]+chaPri>offers[2]+offers[3] ) { // vertical
 							chaPri = 2;
 							traDir = "v";
@@ -236,6 +235,7 @@ public class Cross extends Agent {
 							traDir = "h";
 							System.out.println("Trafic direction: left/right (" + traDir + ")");
 						}
+						System.out.println("");
 						step = 2;
 					}
 				}
@@ -454,38 +454,38 @@ public class Cross extends Agent {
 			if( laneId<0 ) {
 				if( crossId<=gridX && -1*crossId==laneId ) { // on top edge
 					returner = 0;
-					System.out.print("SPECIAL0 ");
+//					System.out.print("SPECIAL0 ");
 				}
 				else if( crossId>=(gridX*gridY-gridX) && -1*(gridX+gridY+(crossId-1)%gridX+1)==laneId ) { // on down edge
 					returner = 1;
-					System.out.print("SPECIAL1 ");
+//					System.out.print("SPECIAL1 ");
 				}
 				else if( (crossId-1)%gridX==0 && -1*(gridX+gridY+gridX+crossId/gridX)==laneId ) { // on left edge
 					returner = 2;
-					System.out.print("SPECIAL2 ");
+//					System.out.print("SPECIAL2 ");
 				}
 				else if( crossId%gridY==0 && -1*(gridX+crossId/gridX)==laneId ) { // on right edge
 					returner = 3;
-					System.out.print("SPECIAL3 ");
+//					System.out.print("SPECIAL3 ");
 				}
 			}
 			
 			// normal case if cross is not on edge
 			else if( (crossId-gridX)*4-1==laneId ) { // up
 				returner = 0;
-				System.out.print("NORMAL0 ");
+//				System.out.print("NORMAL0 ");
 			}
 			else if( (crossId+gridX)*4-3==laneId ) { // down
 				returner = 1;
-				System.out.print("NORMAL1 ");
+//				System.out.print("NORMAL1 ");
 			}
 			else if( ((crossId-1)*4-2)==laneId ) { // left
 				returner = 2;
-				System.out.print("NORMAL2 ");
+//				System.out.print("NORMAL2 ");
 			}
 			else if( ((crossId+1)*4-4)==laneId ) { // right
 				returner = 3;
-				System.out.print("NORMAL3 ");
+//				System.out.print("NORMAL3 ");
 			}
 		}
 		
