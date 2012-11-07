@@ -52,12 +52,12 @@ public class GUIInterface
 		frame.setVisible(true);	
 	}
 	
-	//Update the drawn cars
+	//Update the drawn lights
 	public void updateLights(int[] theLights)
 	{
 		mergeDataArrays(theLights, lightsData);
 		frame.remove(lights);
-		drawCars();
+		drawLights();
 	}
 
 	//Draw the lights
@@ -84,6 +84,8 @@ public class GUIInterface
 		frame.setVisible(true);
 	}
 	
+	
+	//Merge old data set with a new one
 	private void mergeDataArrays(int[] inputNew, int[] outputOld)
 	{
 		if(inputNew.length != outputOld.length)

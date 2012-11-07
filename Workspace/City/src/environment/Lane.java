@@ -185,7 +185,8 @@ public class Lane extends Agent {
 				if ( numberOfVehicles>=0 ) 
 				{
 					reply.setPerformative(ACLMessage.INFORM);
-					reply.setContent(Integer.toString(numberOfVehicles));
+					reply.setContent(Integer.toString((int) (Math.random()*10)));
+					//reply.setContent(Integer.toString(numberOfVehicles));
 				}
 				else 
 				{
