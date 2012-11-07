@@ -4,8 +4,8 @@ public class Settings
 {
 
 	/**** GENERAL SETTINGS *****************************/
-	public static int sizex = 2;
-	public static int sizey = 2;
+	public static int sizex = 5;
+	public static int sizey = 5;
 	
 	/**** GUI SETTINGS *********************************/
 	public static int sizexFrame = (sizex+1)*100;
