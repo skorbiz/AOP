@@ -19,7 +19,7 @@ public class Settings
 	public static String CrossToLaneRequesOffers = "Requesting the price for all lanes";
 	public static String CrossToLaneRequesSpaces = "Requesting the number of free spaces in queue from lane";
 	public static String CrossToLaneRequestRetrieveVehicle = "Requesting vehicle from lane";
-	public static String CrossToLaneRequestInsertVehicle = "Sending vehicle from lane";
+	public static String CrossToLaneRequestInsertVehicle = "Sending vehicle to lane";
 	
 	
 	/**** SUPPORT FUNCTIONS ****************************/

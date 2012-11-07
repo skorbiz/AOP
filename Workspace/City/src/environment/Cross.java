@@ -31,13 +31,14 @@ public class Cross extends Agent {
 	private String traDir = "v";
 	// Price for changing direction
 	private int chaPri = 2;
-	
+	// Counter used in the main ticker behaviour to controlles the sub behaviours
 	private int ticks = -1;
-  
+
+	
 	// Put agent initializations here
 	protected void setup() {
 		// Printout a welcome message
-		System.out.println("Cross-agent " + getAID().getName() + " is ready.");
+		System.out.println("Cross-agent " + getAID().getLocalName() + " is ready.");
 	    
 		// Get the title of the book to buy as a start-up argument
 		Object[] args = getArguments();
@@ -66,13 +67,16 @@ public class Cross extends Agent {
 			System.out.println("Not all parameters are specified");
 			doDelete();
 		}
+		System.out.println();
 	}
 
 	// Put agent clean-up operations here
 	protected void takeDown() {
 		// Printout a dismissal message
-		System.out.println("Cross-agent " + getAID().getName() + " terminating.");
+		System.out.println("Cross-agent " + getAID().getLocalName() + " terminating.");
 	}
+	
+	/* function der returnere 0 og 1 for retning */
   
 
 	private class FindingRightLanes extends Behaviour {
@@ -136,14 +140,14 @@ public class Cross extends Agent {
 						if (repliesCnt >= laneAgents.length) {
 							// We received all replies
 							step = 3;
-							System.out.println(myAgent.getLocalName() + " in0: " + inLaneAgents[0]);
-							System.out.println(myAgent.getLocalName() + " in1: " + inLaneAgents[1]);
-							System.out.println(myAgent.getLocalName() + " in2: " + inLaneAgents[2]);
-							System.out.println(myAgent.getLocalName() + " in3: " + inLaneAgents[3]);
-							System.out.println(myAgent.getLocalName() + " out0: " + outLaneAgents[0]);
-							System.out.println(myAgent.getLocalName() + " out1: " + outLaneAgents[1]);
-							System.out.println(myAgent.getLocalName() + " out2: " + outLaneAgents[2]);
-							System.out.println(myAgent.getLocalName() + " out3: " + outLaneAgents[3]);
+							System.out.println(myAgent.getLocalName() + " in0: " + inLaneAgents[0].getLocalName());
+							System.out.println(myAgent.getLocalName() + " in1: " + inLaneAgents[1].getLocalName());
+							System.out.println(myAgent.getLocalName() + " in2: " + inLaneAgents[2].getLocalName());
+							System.out.println(myAgent.getLocalName() + " in3: " + inLaneAgents[3].getLocalName());
+							System.out.println(myAgent.getLocalName() + " out0: " + outLaneAgents[0].getLocalName());
+							System.out.println(myAgent.getLocalName() + " out1: " + outLaneAgents[1].getLocalName());
+							System.out.println(myAgent.getLocalName() + " out2: " + outLaneAgents[2].getLocalName());
+							System.out.println(myAgent.getLocalName() + " out3: " + outLaneAgents[3].getLocalName());
 							System.out.println("");
 						}
 					}
@@ -168,14 +172,14 @@ public class Cross extends Agent {
 
 		public void action() {
 			switch (step) {
-				case 0: // Send the cfp to all lanes
+				case 0:
 					offers[0] = -1;
 					offers[1] = -1;
 					offers[2] = -1;
 					offers[3] = -1;
 					step = 1;
 					break;
-				case 1:
+				case 1: // Send the cfp to in lanes lanes
 					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
 					for (int i = 0; i < inLaneAgents.length; ++i) {
 						cfp.addReceiver(inLaneAgents[i]);
@@ -206,14 +210,14 @@ public class Cross extends Agent {
 						repliesCnt++;
 						if (repliesCnt >= inLaneAgents.length) {
 							// We received all replies
-							System.out.println(inLaneAgents[0] + " offers: " + offers[0]);
-							System.out.println(inLaneAgents[1] + " offers: " + offers[1]);
-							System.out.println(inLaneAgents[2] + " offers: " + offers[2]);
-							System.out.println(inLaneAgents[3] + " offers: " + offers[3]);
+							System.out.println(inLaneAgents[0].getLocalName() + " offers: " + offers[0]);
+							System.out.println(inLaneAgents[1].getLocalName() + " offers: " + offers[1]);
+							System.out.println(inLaneAgents[2].getLocalName() + " offers: " + offers[2]);
+							System.out.println(inLaneAgents[3].getLocalName() + " offers: " + offers[3]);
 							if( offers[0]+offers[1]+chaPri>offers[2]+offers[3] ) { // vertical
-								chaPri = 2;
 								traDir = "v";
 								System.out.println("Trafic direction: up/down (" + traDir + ")");
+								chaPri = 2;
 							}
 							else { // horizontal
 								chaPri = -2;
@@ -246,12 +250,13 @@ public class Cross extends Agent {
 		private int[] emptySpacesInLane = new int[2];
 		private AID[] accInLaneAgents = new AID[2];
 		private AID[] accOutLaneAgents = new AID[2];
-		private Object[] vehicles = new Object[2];
+		private Vehicle[] vehicles = new Vehicle[2];
 		private int vehiclesToMove = 0;
 		
 		public void action() {
 			switch (step) {
-				case 0:
+				case 0: // initalization of variables.
+					System.out.println();
 					emptySpacesInLane[0] = -1;
 					emptySpacesInLane[1] = -1;
 					vehicles[0] = null;
@@ -271,7 +276,7 @@ public class Cross extends Agent {
 					}
 					step = 1;
 					break;
-				case 1:
+				case 1: // Sending request to the right outgoing lanes to know the number of free spaces in queue.
 					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
 					cfp.addReceiver(accOutLaneAgents[0]);
 					cfp.addReceiver(accOutLaneAgents[1]);
@@ -284,12 +289,12 @@ public class Cross extends Agent {
 											 MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
 					step = 2;
 					break;
-				case 2: // Receive all proposals/refusals from lane agents
+				case 2: // Receive all inform/failure from lane agents about free spaces in queue.
 					ACLMessage reply = myAgent.receive(mt);
 					if (reply != null) {
 						// Reply received
 						if (reply.getPerformative() == ACLMessage.INFORM) {
-							// This is an offer
+							// This is an answer
 							int emptySpaces = Integer.parseInt(reply.getContent());
 							if( accOutLaneAgents[0].compareTo(reply.getSender())==0 ) {
 								emptySpacesInLane[0] = emptySpaces;
@@ -299,27 +304,26 @@ public class Cross extends Agent {
 							}
 						}
 						repliesCnt++;
-						if (repliesCnt >= inLaneAgents.length/2) {
+						if (repliesCnt >= 2) {
 							// We received all replies
-//							step = 3;
-							System.out.println("Free spaces in queue: " + emptySpacesInLane[0] + " and " + emptySpacesInLane[1]);
-							System.out.println("");
-							step = 6;
+							step = 3;
+							System.out.println("Empty spaces in outgoing lane: " + emptySpacesInLane[0] + ", " + emptySpacesInLane[1] + ".");
 						}
 					}
 					else {
 						block();
 					}
 					break;
-				case 3:
+				case 3: // If the outgoing lane has a free space in the queue, request the opposite incoming lane for a vehicle.
 					vehiclesToMove = 0;
 					ACLMessage cfp2 = new ACLMessage(ACLMessage.REQUEST);
 					if( emptySpacesInLane[0]>0 ) {
 						cfp2.addReceiver(inLaneAgents[0]);
 						vehiclesToMove++;
 					}
-					else if( emptySpacesInLane[1]>0 ) {
-						cfp2.addReceiver(inLaneAgents[1]);	
+					if( emptySpacesInLane[1]>0 ) {
+						cfp2.addReceiver(inLaneAgents[1]);
+						vehiclesToMove++;
 					}
 					cfp2.setContent(Settings.CrossToLaneRequestRetrieveVehicle);
 					cfp2.setConversationId(conIdMove);
@@ -330,14 +334,14 @@ public class Cross extends Agent {
 					MessageTemplate.MatchInReplyTo(cfp2.getReplyWith()));
 					if( vehiclesToMove>0 )
 					{
+						step = 4;
+					}
+					else {
 						System.out.println(myAgent.getLocalName() + ": Out lanes have no space for vehicle!");
 						step = 6;
 					}
-					else {
-						step = 4;
-					}
 					break;
-				case 4:
+				case 4: // Receiving vehicle from the right incoming lane.
 					repliesCnt = 0;
 					ACLMessage replyInLane = myAgent.receive(mt);
 					if (replyInLane != null) {
@@ -345,11 +349,14 @@ public class Cross extends Agent {
 						if (replyInLane.getPerformative() == ACLMessage.INFORM) {
 							try {
 								// This is an offer
+								System.out.println("Vehicle " + replyInLane.getContentObject() + " received from " + replyInLane.getSender().getLocalName() + " into ");
 								if( accInLaneAgents[0].compareTo(replyInLane.getSender())==0 ) {
-									vehicles[0] = replyInLane.getContentObject();
+									vehicles[0] = (Vehicle) replyInLane.getContentObject();
+									System.out.println("vehicles[0]: " + vehicles[0].getWaitTime());
 								}
-								else {
-									vehicles[1] = replyInLane.getContentObject();
+								if ( accInLaneAgents[1].compareTo(replyInLane.getSender())==0 ) {
+									vehicles[1] = (Vehicle) replyInLane.getContentObject();
+									System.out.println("vehicles[1]: " + vehicles[1].getWaitTime());
 								}
 							}
 							catch (Exception ex) {
@@ -366,27 +373,30 @@ public class Cross extends Agent {
 						block();
 					}
 					break;
-				case 5:
-					ACLMessage replyOutLane = new ACLMessage(ACLMessage.REQUEST);
+				case 5: // Sending vehicle to the right outgoing lane.
 					try {
+						System.out.println("Vehicles to send: " + vehicles[0] + " and " + vehicles[1] + ".");
 						if( vehicles[0]!=null ) {
+							ACLMessage replyOutLane = new ACLMessage(ACLMessage.PROPAGATE);
+							myAgent.send(replyOutLane);
+							System.out.println("Sending vehicles[0] " + vehicles[0] + " to " + accOutLaneAgents[1].getLocalName() + " (" + vehicles[0].getWaitTime() + ").");
 							replyOutLane.addReceiver(accOutLaneAgents[1]);
 							replyOutLane.setContentObject((Serializable)vehicles[0]);
+							replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+							myAgent.send(replyOutLane);
 						}
-						else if( vehicles[0]!=null ) {
+						if( vehicles[1]!=null ) {
+							ACLMessage replyOutLane = new ACLMessage(ACLMessage.PROPAGATE);
+							myAgent.send(replyOutLane);
+							System.out.println("Sending vehicles[1] " + vehicles[1] + " to " + accOutLaneAgents[0].getLocalName() + " (" + vehicles[1].getWaitTime() + ").");
 							replyOutLane.addReceiver(accOutLaneAgents[0]);
 							replyOutLane.setContentObject((Serializable)vehicles[1]);
+							replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+							myAgent.send(replyOutLane);
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					replyOutLane.setContent(Settings.CrossToLaneRequestInsertVehicle);
-					replyOutLane.setConversationId(conIdMove);
-					replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-					myAgent.send(replyOutLane);
-					// Prepare the template to get proposals
-					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
-					MessageTemplate.MatchInReplyTo(replyOutLane.getReplyWith()));
 					step = 6;
 					break;
 					

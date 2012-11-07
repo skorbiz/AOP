@@ -15,7 +15,7 @@ public class MainAgent extends Agent {
 	
 	protected void setup() {
 		// Printout a welcome message
-		System.out.println("Main-agent " + getAID().getName() + " is ready.");
+		System.out.println("Main-agent " + getAID().getLocalName() + " is ready.");
 
 		addBehaviour(new SetUpAgents());
 	}
@@ -23,7 +23,7 @@ public class MainAgent extends Agent {
 	// Put agent clean-up operations here
 	protected void takeDown() {
 		// Printout a dismissal message
-		System.out.println("Main-agent " + getAID().getName() + " terminating.");
+		System.out.println("Main-agent " + getAID().getLocalName() + " terminating.");
 	}
 	
 	private void setUpAgent(String agentName,String className,Object[] arguments) throws StaleProxyException 

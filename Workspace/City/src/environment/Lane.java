@@ -31,7 +31,7 @@ public class Lane extends Agent {
 	// Put agent initializations here
 	protected void setup() {
 		// Printout a welcome message
-		System.out.println("Lane-agent "+getAID().getName()+" is ready.");
+		System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
 		
 		// Get the title of the book to buy as a start-up argument
 		Object[] args = getArguments();
@@ -74,6 +74,10 @@ public class Lane extends Agent {
 			
 			// Add the behavior serving space in queue from cross agents
 			addBehaviour(new RequestNumberEmptySpacesServer());
+			
+			addBehaviour(new RequestRetrieveVehicleServer());
+			
+			addBehaviour(new InsertVehicleServer());
 		}
 		else {
 			// Make the agent terminate
@@ -92,7 +96,7 @@ public class Lane extends Agent {
 			fe.printStackTrace();
 		}
 		// Printout a dismissal message
-		System.out.println("Lane-agent "+getAID().getName()+" terminating.");
+		System.out.println("Lane-agent "+getAID().getLocalName()+" terminating.");
 	}
   
 	
@@ -229,35 +233,53 @@ public class Lane extends Agent {
 	}
 	
 	
-//	if ( 0==p.compareTo(dirIn) ) {
-//		Vehicle vehicle = queue.retrieveVehicle();
-//		System.out.println(vehicle);
-//		if( vehicle!=null ) {
-//			try {
-//				reply.setContentObject(vehicle);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		reply.setContent("i" + dirOut);
-//	}
-//	else if ( 0==p.compareTo(dirOut) ) {
-//		reply.setContent("o" + dirIn);
-//	}
+	private class RequestRetrieveVehicleServer extends CyclicBehaviour {
+		public void action() {
+			MessageTemplate mt = MessageTemplate.and(  
+													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													MessageTemplate.MatchContent(Settings.CrossToLaneRequestRetrieveVehicle));
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) {
+				ACLMessage reply = msg.createReply();
+				Vehicle vehicle = queue.retrieveVehicle();
+				System.out.println("RequestRetrieveVehicleServer: " + myAgent.getLocalName() + ": " + vehicle.getWaitTime());
+				if( vehicle!=null ) {
+					reply.setPerformative(ACLMessage.INFORM);
+					try {
+						reply.setContentObject(vehicle);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				else {
+					reply.setPerformative(ACLMessage.FAILURE);
+					reply.setContent("Can not insert vehicle");
+				}
+				myAgent.send(reply);
+			}
+			else {
+				block();
+			}
+		}
+	}
 	
 	
 	private class InsertVehicleServer extends CyclicBehaviour {
 		public void action() {
-			MessageTemplate mt = MessageTemplate.and(  
-													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-													MessageTemplate.MatchContent(Settings.CrossToLaneRequesSpaces));
+			MessageTemplate mt = MessageTemplate.MatchPerformative( ACLMessage.PROPAGATE );
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
-				System.out.println("InsertVehicleServer");
 				boolean test = false;
 				try {
-					Object veh = msg.getContentObject();
-					test = queue.insertVehicle( (Vehicle) veh );
+					Vehicle vehicle = (Vehicle) msg.getContentObject();
+					long temp = vehicle.getWaitTime();
+					test = queue.insertVehicle( (Vehicle) vehicle );
+					if( test ) {
+						System.out.println(myAgent.getLocalName() + " inserted " + vehicle + " (" + temp + "=>" + vehicle.getWaitTime() + ").");
+					}
+					else {
+						System.out.println("Error");
+					}
 				}
 				catch (Exception ex) {
 						ex.printStackTrace();
