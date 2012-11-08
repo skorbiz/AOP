@@ -35,8 +35,8 @@ public class GUIComponentCars extends JComponent
 		double stepSizeX = windowSizeX/(sizeX+1);
 		double stepSizeY = windowSizeY/(sizeY+1);
 		int loops = 0;
-		for(int i = (int) stepSizeX; i < windowSizeX; i += stepSizeX)
-			for(int j = (int) stepSizeY; j < windowSizeY; j += stepSizeY)
+		for(int i = (int) stepSizeY; i < windowSizeY; i += stepSizeY)
+			for(int j = (int) stepSizeX; j < windowSizeX; j += stepSizeX)
 			{
 				g2.drawString(Integer.toString(cars[loops  ]), i-15, j-15);		//TOP
 				g2.drawString(Integer.toString(cars[loops+1]), i+1	, j+25);	//BOTTOM
