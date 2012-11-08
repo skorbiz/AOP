@@ -13,12 +13,12 @@ public class GUIComponentRoads extends JComponent
 	int windowSizeX;
 	int windowSizeY;
 		
-	public GUIComponentRoads(Settings settings)
+	public GUIComponentRoads()
 	{
-		sizeX = settings.sizex;
-		sizeY = settings.sizey;
-		windowSizeX = settings.sizexFrame;
-		windowSizeY = settings.sizeyFrame;
+		sizeX = Settings.sizex;
+		sizeY = Settings.sizey;
+		windowSizeX = Settings.sizexFrame;
+		windowSizeY = Settings.sizeyFrame;
 	}
 		
 	public void paintComponent(Graphics g)

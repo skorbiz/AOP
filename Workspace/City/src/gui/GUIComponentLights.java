@@ -25,12 +25,12 @@ public class GUIComponentLights extends JComponent {
 	
 	int[] lights;
 	
-	public GUIComponentLights(Settings settings, int[] theLights)
+	public GUIComponentLights(int[] theLights)
 	{
-		sizeX = settings.sizex;
-		sizeY = settings.sizey;
-		windowSizeX = settings.sizexFrame;
-		windowSizeY = settings.sizeyFrame;
+		sizeX = Settings.sizex;
+		sizeY = Settings.sizey;
+		windowSizeX = Settings.sizexFrame;
+		windowSizeY = Settings.sizeyFrame;
 		lights = theLights;
 		
 	}

@@ -74,7 +74,7 @@ public class Lane extends Agent {
 			
 			// Add the behavior serving space in queue from cross agents
 			addBehaviour(new RequestNumberEmptySpacesServer());
-			
+		
 			addBehaviour(new RequestRetrieveVehicleServer());
 			
 			addBehaviour(new InsertVehicleServer());
@@ -185,8 +185,8 @@ public class Lane extends Agent {
 				if ( numberOfVehicles>=0 ) 
 				{
 					reply.setPerformative(ACLMessage.INFORM);
-					reply.setContent(Integer.toString((int) (Math.random()*10)));
-					//reply.setContent(Integer.toString(numberOfVehicles));
+					//reply.setContent(Integer.toString((int) (Math.random()*10)));
+					reply.setContent(Integer.toString(numberOfVehicles));
 				}
 				else 
 				{
@@ -244,15 +244,16 @@ public class Lane extends Agent {
 				ACLMessage reply = msg.createReply();
 				Vehicle vehicle = queue.retrieveVehicle();
 				System.out.println("RequestRetrieveVehicleServer: " + myAgent.getLocalName() + ": " + vehicle.getWaitTime());
-				if( vehicle!=null ) {
+				if( vehicle != null ) 
+				{
 					reply.setPerformative(ACLMessage.INFORM);
-					try {
+					try 
+					{
 						reply.setContentObject(vehicle);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					} catch (IOException e) { e.printStackTrace(); }
 				}
-				else {
+				else 
+				{
 					reply.setPerformative(ACLMessage.FAILURE);
 					reply.setContent("Can not insert vehicle");
 				}
@@ -269,22 +270,22 @@ public class Lane extends Agent {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative( ACLMessage.PROPAGATE );
 			ACLMessage msg = myAgent.receive(mt);
-			if (msg != null) {
+			if (msg != null) 
+			{
 				boolean test = false;
 				try {
 					Vehicle vehicle = (Vehicle) msg.getContentObject();
 					long temp = vehicle.getWaitTime();
 					test = queue.insertVehicle( (Vehicle) vehicle );
-					if( test ) {
+					if( test ) 
+					{
 						System.out.println(myAgent.getLocalName() + " inserted " + vehicle + " (" + temp + "=>" + vehicle.getWaitTime() + ").");
 					}
 					else {
 						System.out.println("Error");
 					}
 				}
-				catch (Exception ex) {
-						ex.printStackTrace();
-				}
+				catch (Exception ex) { ex.printStackTrace(); }
 							
 //				ACLMessage reply = msg.createReply();
 //				
@@ -299,7 +300,8 @@ public class Lane extends Agent {
 //				}
 //				myAgent.send(reply);
 			}
-			else {
+			else 
+			{
 				block();
 			}
 		}

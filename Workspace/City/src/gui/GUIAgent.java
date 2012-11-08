@@ -39,7 +39,6 @@ public class GUIAgent extends Agent
 			updateLights();
 			requestCars();
 			requestLights();
-
         }
     };
 	
