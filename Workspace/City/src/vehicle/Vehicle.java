@@ -81,6 +81,7 @@ public class Vehicle implements Serializable {
 	
 	public long getWaitTime() 
 	{
-		return lastUpdatedeTime -startTimeInLane;
+		updateVehicleDistanceAndSpeed();
+		return lastUpdatedeTime - startTimeInLane;
 	}
 }
