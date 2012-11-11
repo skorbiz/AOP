@@ -26,6 +26,7 @@ public class Vehicle implements Serializable {
 	{
 		startTimeInSystem = System.currentTimeMillis();
 		lastUpdatedeTime = startTimeInSystem;
+		startTimeInLane = startTimeInSystem;
 		
 	}
 	
@@ -80,11 +81,6 @@ public class Vehicle implements Serializable {
 	
 	public long getWaitTime() 
 	{
-		return startTimeInLane;
-	}
-	
-	public void setWaitTime(long waitingTime) 
-	{
-		startTimeInLane = waitingTime;
+		return lastUpdatedeTime -startTimeInLane;
 	}
 }

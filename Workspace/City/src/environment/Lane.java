@@ -31,15 +31,14 @@ public class Lane extends Agent {
 	// Put agent initializations here
 	protected void setup() {
 		// Printout a welcome message
-		System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
+		//System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
 		
 		// Get the title of the book to buy as a start-up argument
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			
-//			laneId = Integer.parseInt((String)args[0]);
 			laneId = (Integer) args[0];
-			System.out.println("Lane identifiers are: " + laneId);
+			//System.out.println("Lane identifiers are: " + laneId);
 		
 			// Create the vehicle queue
 			queue = new QueueLane();
@@ -185,8 +184,8 @@ public class Lane extends Agent {
 				if ( numberOfVehicles>=0 ) 
 				{
 					reply.setPerformative(ACLMessage.INFORM);
-					//reply.setContent(Integer.toString((int) (Math.random()*10)));
-					reply.setContent(Integer.toString(numberOfVehicles));
+					reply.setContent(Integer.toString((int) (Math.random()*10)));
+					//reply.setContent(Integer.toString(numberOfVehicles));
 				}
 				else 
 				{
@@ -332,14 +331,10 @@ public class Lane extends Agent {
 		}
 		
 		public boolean insertVehicle(Vehicle vehicle) {
-			if( queue.size()<10 ) {
-//				vehicle.setWaitTime(System.currentTimeMillis());
-				vehicle.setWaitTime(System.currentTimeMillis()-random.nextInt(10000));
+			if( queue.size()<10 )
 				return queue.add(vehicle);
-			}
-			else {
+			else 
 				return false;
-			}
 		}
 		
 		public Vehicle retrieveVehicle() {
