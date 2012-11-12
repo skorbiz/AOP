@@ -14,19 +14,18 @@ public class GUIComponentCars extends JComponent
 	
 	int[] cars;
 	
-	public GUIComponentCars(Settings settings, int[] theCars)
+	public GUIComponentCars(int[] theCars)
 	{
-		sizeX = settings.sizex;
-		sizeY = settings.sizey;
-		windowSizeX = settings.sizexFrame;
-		windowSizeY = settings.sizeyFrame;
+		sizeX = Settings.sizex;
+		sizeY = Settings.sizey;
+		windowSizeX = Settings.sizexFrame;
+		windowSizeY = Settings.sizeyFrame;
 		
 		cars = theCars;
 	}
 		
 	public void paintComponent(Graphics g)
-	{
-
+	{		
 		Graphics2D g2 = (Graphics2D) g;
 
 		g2.setFont(new Font("Courier", Font.BOLD, 12));
@@ -38,15 +37,12 @@ public class GUIComponentCars extends JComponent
 		for(int i = (int) stepSizeX; i < windowSizeX; i += stepSizeX)
 			for(int j = (int) stepSizeY; j < windowSizeY; j += stepSizeY)
 			{
-				g2.drawString(Integer.toString(cars[loops  ]), i-15, j-15);		//TOP
-				g2.drawString(Integer.toString(cars[loops+1]), i+1	, j+25);	//BOTTOM
-				g2.drawString(Integer.toString(cars[loops+2]), i-30, j+10);		//LEFT
-				g2.drawString(Integer.toString(cars[loops+3]), i+15, j-1);		//RIGHT
+				g2.drawString(Integer.toString(cars[loops  ]), j-15, i-15);		//TOP
+				g2.drawString(Integer.toString(cars[loops+1]), j+1 , i+25);		//BOTTOM
+				g2.drawString(Integer.toString(cars[loops+2]), j-30, i+10);		//LEFT
+				g2.drawString(Integer.toString(cars[loops+3]), j+15, i-1);		//RIGHT
 				loops+=4;
 			}
-		
-		
-
 	}
 
 		

@@ -8,6 +8,7 @@ import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -26,12 +27,20 @@ public class GUIAgent extends Agent
     private String lanesRelyWithNumberOfCars = "Reply with number of cars";
     private String crossRelyWithLights = "Reply with number of cars";
 
-	Behaviour guiUpdateBehavior = new TickerBehaviour( this, 2000 )
+	Behaviour guiUpdateBehavior = new TickerBehaviour( this, 500 )
     {
-		public void onStart(){
-        	System.out.println("Created GUI agent");
+		public void onStart()
+		{
+			System.out.println("Created GUI agent");
 			updateCrossAgents();
-			updateLaneAgents();
+			updateLaneAgents();	
+			if(laneAgents.length < Settings.sizex*Settings.sizey*4 + 2*Settings.sizex +2*Settings.sizey )
+				System.out.println(
+						"The GUI wont work. It might be because the max number of results returned by the DFservice is limmited to 100 by default. " +
+						"\n Add \"-jade_domain_df_maxresult xxxx\" to the run string to increase the default number. " +
+						"\n An example: " + "\"-gui -jade_domain_df_maxresult 1000 main:environment.MainAgent()\"" +
+						"\n or if started from a default class in jave use " +
+						"\n Boot.main(new String[] {\"-gui\", \"-jade_domain_df_maxresult\", \"1000\"}); ");
         }
         
 		protected void onTick() {
@@ -39,7 +48,6 @@ public class GUIAgent extends Agent
 			updateLights();
 			requestCars();
 			requestLights();
-
         }
     };
 	
@@ -47,7 +55,7 @@ public class GUIAgent extends Agent
 	protected void setup() 
 	{
 		// Printout a welcome message
-		System.out.println(typeOfAgent + getAID().getName()+" is ready.");
+		//System.out.println(typeOfAgent + getAID().getName()+" is ready.");
 	
 		//Start-up arguments 
 		Object[] args = getArguments();

@@ -21,24 +21,18 @@ import java.lang.System;
 
 public class Lane extends Agent {
 
-	// Lane identifiers
-	private int laneId;
-	// The type of the agent
-	private String typeOfAgent = "lane";
-	// Queue for vehicle
-	private QueueLane queue;
+	private int laneId;						// Lane identifiers
+	private String typeOfAgent = "lane";	// The type of the agent
+	private QueueLane queue;				// Queue for vehicle
 
-	// Put agent initializations here
 	protected void setup() {
-		// Printout a welcome message
-		System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
+		//System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
 		
-		// Get the title of the book to buy as a start-up argument
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			
 			laneId = (Integer) args[0];
-			System.out.println("Lane identifiers are: " + laneId);
+			//System.out.println("Lane identifiers are: " + laneId);
 		
 			// Create the vehicle queue
 			queue = new QueueLane();
@@ -55,12 +49,11 @@ public class Lane extends Agent {
 			sd.setType(typeOfAgent);
 			sd.setName("Lane-trading");
 			dfd.addServices(sd);
-			try {
+			try 
+			{
 				DFService.register(this, dfd);
 			}
-			catch (FIPAException fe) {
-				fe.printStackTrace();
-			}
+			catch (FIPAException fe) { fe.printStackTrace(); }
 	    
 			// Add the behavior serving lane id queries from cross agents
 			addBehaviour(new RequestLaneIdServer());
@@ -82,20 +75,18 @@ public class Lane extends Agent {
 		}
 		else {
 			// Make the agent terminate
-			System.out.println("Not all parameters are specified");
+			System.out.println("Not all parameters are specified in Lane agent");
 			doDelete();
 		}
 	}
 
-	// Put agent clean-up operations here
 	protected void takeDown() {
 		// Deregister from the yellow pages
-		try {
+		try 
+		{
 			DFService.deregister(this);
 		}
-		catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
+		catch (FIPAException fe) { fe.printStackTrace(); }
 		// Printout a dismissal message
 		System.out.println("Lane-agent "+getAID().getLocalName()+" terminating.");
 	}
@@ -110,28 +101,15 @@ public class Lane extends Agent {
 
 			ACLMessage msg = myAgent.receive(mt);
 			
-			if( msg != null ) {
-				// CFP Message received. Process it
-//				int crossId = Integer.parseInt(msg.getContent());
-				
-				// make reply
+			if( msg != null ) 
+			{
 				ACLMessage reply = msg.createReply();
 				reply.setPerformative(ACLMessage.PROPOSE);
 				reply.setContent(Integer.toString(laneId));
-				
-//				if ( inLane(laneId, crossId)!=-1 || outLane(laneId, crossId)!=-1 ) {
-//					reply.setPerformative(ACLMessage.PROPOSE);
-//					reply.setContent(Integer.toString(laneId));
-//				}
-//				else {
-//					reply.setPerformative(ACLMessage.REFUSE);
-//					reply.setContent("Not the right lane");
-//				}
 				myAgent.send(reply);
 			}
-			else {
+			else
 				block();
-			}
 		}
 	}
 	
@@ -146,26 +124,24 @@ public class Lane extends Agent {
 			ACLMessage msg = myAgent.receive(mt);
 			
 			if (msg != null) {
-				// make reply
 				ACLMessage reply = msg.createReply();
 				
 				int price = queue.getPrice();
 				
-				if ( price>=0 ) {
+				if ( price>=0 ) 
+				{
 					reply.setPerformative(ACLMessage.INFORM);
 					reply.setContent(Integer.toString(price));
 				}
-				else {
-					// The requested book has been sold to another buyer in the meanwhile .
+				else 
+				{
 					reply.setPerformative(ACLMessage.FAILURE);
 					reply.setContent("Lane out of order");
 				}
 				myAgent.send(reply);
 			}
-			else {
-				block();
-			}
-			
+			else
+				block();			
 		}
 	}
 	
@@ -177,28 +153,17 @@ public class Lane extends Agent {
 													MessageTemplate.MatchContent(Settings.GuiToLaneRequestCars));
 
 			ACLMessage msg = myAgent.receive(mt);
-			if (msg != null  )
+			if ( msg != null )											//Create reply messages
 			{
-				// make reply
 				ACLMessage reply = msg.createReply();
+				reply.setPerformative(ACLMessage.INFORM);
 				int numberOfVehicles = queue.getNumberOfVehicles();
-				
-				if ( numberOfVehicles>=0 ) 
-				{
-					reply.setPerformative(ACLMessage.INFORM);
-//					reply.setContent(Integer.toString((int) (Math.random()*10)));
-					reply.setContent(Integer.toString(numberOfVehicles));
-				}
-				else 
-				{
-					reply.setPerformative(ACLMessage.FAILURE);
-					reply.setContent("Lane out of order");
-				}
+				//reply.setContent(Integer.toString((int) (Math.random()*10)));
+				reply.setContent(Integer.toString(numberOfVehicles));
 				myAgent.send(reply);
 			}
-			else {
+			else 
 				block();
-			}
 		}
 	}
 	
@@ -214,7 +179,7 @@ public class Lane extends Agent {
 			{
 				// make reply
 				ACLMessage reply = msg.createReply();
-				int numberOfFreeSpace = 10-queue.getNumberOfVehicles();
+				int numberOfFreeSpace = queue.getNumberOfFreeSpacesForVehicles();
 				
 				if ( numberOfFreeSpace>=0 ) 
 				{
@@ -240,68 +205,56 @@ public class Lane extends Agent {
 		MessageTemplate mt;
 		
 		public void action() {
-			switch (step) {
-				case 0:
-					mt = MessageTemplate.and(  
-											 MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-											 MessageTemplate.MatchContent(Settings.CrossToLaneRequestRetrieveVehicle));
-					ACLMessage msg = myAgent.receive(mt);
-					if (msg != null) {
-						ACLMessage reply = msg.createReply();
-						Vehicle vehicle = queue.retrieveVehicle();
-						System.out.println("RequestRetrieveVehicleServer: " + myAgent.getLocalName() + ": " + vehicle.getWaitTime());
-						if( vehicle!=null ) {
-							reply.setPerformative(ACLMessage.INFORM);
-							try {
-								reply.setContentObject(vehicle);
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}
-						else {
-							reply.setPerformative(ACLMessage.FAILURE);
-							reply.setContent("Can not insert vehicle");
-						}
-						myAgent.send(reply);
-						mt.and(mt, MessageTemplate.MatchReplyWith("cfp" + System.currentTimeMillis()));
-						step = 1;
-					}
-					else {
-						block();
-					}
-					break;
-				case 1:
-					ACLMessage msg1 = myAgent.receive(mt);
-					if (msg1 != null) {
-						
-					}
-					step = 0;
-					break;
+			MessageTemplate mt = MessageTemplate.and(  
+													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													MessageTemplate.MatchContent(Settings.CrossToLaneRequestRetrieveVehicle));
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) {
+				ACLMessage reply = msg.createReply();
+				Vehicle vehicle = queue.retrieveVehicle();
+				if( vehicle != null ) 
+				{
+					System.out.println("RequestRetrieveVehicleServer: " + myAgent.getLocalName() + ": " + vehicle.getWaitTime());
+
+					reply.setPerformative(ACLMessage.INFORM);
+					try 
+					{
+						reply.setContentObject(vehicle);
+					} 
+					catch (IOException e) { e.printStackTrace(); }
+				}
+				else 
+				{
+					reply.setPerformative(ACLMessage.FAILURE);
+					reply.setContent("Can not insert vehicle");
+				}
+				myAgent.send(reply);
 			}
+			else 
+				block();
 		}
 	}
-	
 	
 	private class InsertVehicleServer extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative( ACLMessage.PROPAGATE );
 			ACLMessage msg = myAgent.receive(mt);
-			if (msg != null) {
+			if (msg != null) 
+			{
 				boolean test = false;
-				try {
+				try 
+				{
 					Vehicle vehicle = (Vehicle) msg.getContentObject();
 					long temp = vehicle.getWaitTime();
 					test = queue.insertVehicle( (Vehicle) vehicle );
-					if( test ) {
+					if( test ) 
+					{
 						System.out.println(myAgent.getLocalName() + " inserted " + vehicle + " (" + temp + "=>" + vehicle.getWaitTime() + ").");
 					}
-					else {
+					else 
 						System.out.println("Error");
-					}
 				}
-				catch (Exception ex) {
-						ex.printStackTrace();
-				}
+				catch (Exception ex) { ex.printStackTrace(); }
 							
 //				ACLMessage reply = msg.createReply();
 //				
@@ -316,63 +269,65 @@ public class Lane extends Agent {
 //				}
 //				myAgent.send(reply);
 			}
-			else {
+			else 
+			{
 				block();
 			}
 		}
 	}
 	
 	
-	private class QueueLane {
-		ArrayList<Vehicle> queue = new ArrayList<Vehicle>();
-		boolean running = true;
-		Random random = new Random();
+	private class QueueLane 
+	{
+		ArrayList<Vehicle> vehicleInLane = new ArrayList<Vehicle>();
+		private int maxVehicleInLane = 10;
 		
-		public QueueLane() {
+		public QueueLane() 
+		{
 		}
 		
-		public int getNumberOfVehicles() {
-			return queue.size();
+		public int getNumberOfVehicles() 
+		{
+			return vehicleInLane.size();
 		}
 		
-		public int getPrice() {
+		public int getNumberOfFreeSpacesForVehicles() 
+		{
+			return maxVehicleInLane-vehicleInLane.size();
+		}
+		
+		public int getPrice() 
+		{
 			int price = -1;
-			if( running==true ) {
-				long curtime = System.currentTimeMillis();
-				for(int i=0; i<queue.size(); i++) {
-					price += (curtime - queue.get(i).getWaitTime());
-				}
-			}
+			for(int i = 0; i < vehicleInLane.size(); i++)				
+				price += vehicleInLane.get(i).getWaitTime();
+
 			return price/1000;
 		}
 		
-		public boolean insertVehicle(Vehicle vehicle) {
-			if( queue.size()<10 ) {
-//				vehicle.setWaitTime(System.currentTimeMillis());
-				vehicle.setWaitTime(System.currentTimeMillis()-random.nextInt(10000));
-				return queue.add(vehicle);
-			}
-			else {
+		public boolean insertVehicle(Vehicle vehicle) 
+		{
+			if( vehicleInLane.size() < maxVehicleInLane )
+				return vehicleInLane.add(vehicle);
+			else 
 				return false;
-			}
 		}
 		
-		public Vehicle retrieveVehicle() {
-			return queue.remove(0);
-		}
-		
-		public void revomeVehicle() {
-			queue.remove(0);
-		}
-		
-		public void startQueue() {
-			running = true;
-		}
-		public void stopQueue() {
-			running = false;
-		}
-		public boolean statusQueue() {
-			return running;
-		}
+		public Vehicle retrieveVehicle() 
+		{	
+			if(vehicleInLane.size() == 0)										//No vehicles in que
+				return null;
+			
+			if(vehicleInLane.size() >= 2)										//If the vehicle behind the vehicle to be transfered has reached the traffic light,
+				vehicleInLane.get(1).putVehicleInQue();							//it will be put in the state 'inQue' and have a speed of zero
+			
+			boolean vehicleReadyToTransfer;										//Update the front vehicle to see if its ready to transfer
+			vehicleReadyToTransfer = vehicleInLane.get(0).transferVehicle();	//The vehicle is updated such that the parameters fit the next que
+			
+			if(vehicleReadyToTransfer == false)									//Return null if the vehicle is not ready to transfer
+				return null;											
+			
+			return vehicleInLane.remove(0);
+		}		
 	}
 }

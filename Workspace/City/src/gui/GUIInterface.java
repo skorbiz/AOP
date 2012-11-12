@@ -17,14 +17,13 @@ import general.Settings;
 public class GUIInterface 
 {
 	private JFrame frame = new JFrame();
-	private Settings settings = new Settings();
 
 	private GUIComponentLights lights;
 	private GUIComponentCars cars;
 	
 	//Data containg lights and cars information
-	int[] lightsData = new int[settings.sizex*settings.sizey];
-	int[] carsData = new int[settings.sizex*settings.sizey*4];
+	int[] lightsData = new int[Settings.sizex*Settings.sizey];
+	int[] carsData = new int[Settings.sizex*Settings.sizey*4];
 	
 	public GUIInterface()
 	{
@@ -39,15 +38,15 @@ public class GUIInterface
 	private void createFrame()
 	{	
 		//Creates The Frame
-		frame.setSize( settings.sizexFrame, settings.sizeyFrame +22);
+		frame.setSize( Settings.sizexFrame, Settings.sizeyFrame +22);
 		frame.setResizable(false);
-		frame.setTitle(settings.nameFrame);
+		frame.setTitle(Settings.nameFrame);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLocationRelativeTo(null); //Center of screen
 		frame.setBackground(Color.lightGray);
 		
 		//Draw the roads
-		GUIComponentRoads Roads = new GUIComponentRoads(settings);
+		GUIComponentRoads Roads = new GUIComponentRoads();
 		frame.add(Roads);		
 		frame.setVisible(true);	
 	}
@@ -63,7 +62,7 @@ public class GUIInterface
 	//Draw the lights
 	private void drawLights()
 	{
-		lights = new GUIComponentLights(settings, lightsData);
+		lights = new GUIComponentLights(lightsData);
 		frame.add(lights);
 		frame.setVisible(true);
 	}
@@ -79,7 +78,7 @@ public class GUIInterface
 	//Draw cars
 	private void drawCars()
 	{
-		cars = new GUIComponentCars(settings, carsData);
+		cars = new GUIComponentCars(carsData);
 		frame.add(cars);
 		frame.setVisible(true);
 	}

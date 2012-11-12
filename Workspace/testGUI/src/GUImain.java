@@ -8,8 +8,12 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+
+import vehicle.Vehicle;
 
 public class GUImain 
 {
