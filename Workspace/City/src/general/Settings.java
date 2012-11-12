@@ -66,7 +66,7 @@ public class Settings
 					temp = 1;
 //					System.out.print("SPECIAL1 ");
 				}
-				else if( (crossId-1)%sizex==0 && -1*(sizex+sizey+sizex+crossId/sizex)==laneId ) { // on left edge
+				else if( (crossId-1)%sizex==0 && -1*(sizex+sizey+sizex+sizex/crossId)==laneId ) { // on left edge
 					temp = 2;
 //					System.out.print("SPECIAL2 ");
 				}
@@ -81,15 +81,15 @@ public class Settings
 				temp = 0;
 //				System.out.print("NORMAL0 ");
 			}
-			else if( (crossId+sizex)*4-3==laneId ) { // down
+			else if( (crossId+sizex)*4-4==laneId ) { // down
 				temp = 1;
 //				System.out.print("NORMAL1 ");
 			}
-			else if( ((crossId-1)*4-2)==laneId ) { // left
+			else if( ((crossId-1)*4-3)==laneId ) { // left
 				temp = 2;
 //				System.out.print("NORMAL2 ");
 			}
-			else if( ((crossId+1)*4-4)==laneId ) { // right
+			else if( ((crossId+1)*4-2)==laneId ) { // right
 				temp = 3;
 //				System.out.print("NORMAL3 ");
 			}

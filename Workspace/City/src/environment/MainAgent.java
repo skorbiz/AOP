@@ -48,6 +48,7 @@ public class MainAgent extends Agent {
 			
 			int numberOfNormalInLanes = Settings.sizex*Settings.sizey*4;
 			int numberOfSpecialInLanes = Settings.sizex*2 + Settings.sizey*2;
+			int numberOfCrosses = Settings.sizex*Settings.sizey;
 			
 			// Set-up normal lane agents
 			for(int i=0; i<numberOfNormalInLanes; i++) {
@@ -63,9 +64,12 @@ public class MainAgent extends Agent {
 			}
 			
 			// Set-up cross agent
-			args = new Object[] {1};
-			createAgent("Cross"+"1","environment.Cross",args);
-
+			for(int i=1; i<=numberOfCrosses; i++) {
+				String stg = Integer.toString(i);
+				args = new Object[] {i};
+				createAgent("Cross"+stg,"environment.Cross",args);
+			}
+			
 			//Set-up gui agent
 			args = new Object[] {"GUI"};
 			createAgent("GUI","gui.GUIAgent", args);

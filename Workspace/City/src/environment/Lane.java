@@ -37,7 +37,6 @@ public class Lane extends Agent {
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			
-//			laneId = Integer.parseInt((String)args[0]);
 			laneId = (Integer) args[0];
 			System.out.println("Lane identifiers are: " + laneId);
 		
@@ -75,8 +74,10 @@ public class Lane extends Agent {
 			// Add the behavior serving space in queue from cross agents
 			addBehaviour(new RequestNumberEmptySpacesServer());
 			
+			// Add the behavior serving sending vehicle to cross agents
 			addBehaviour(new RequestRetrieveVehicleServer());
 			
+			// Add the behavior serving reveiving vehicle from cross agents
 			addBehaviour(new InsertVehicleServer());
 		}
 		else {
@@ -185,8 +186,8 @@ public class Lane extends Agent {
 				if ( numberOfVehicles>=0 ) 
 				{
 					reply.setPerformative(ACLMessage.INFORM);
-					reply.setContent(Integer.toString((int) (Math.random()*10)));
-					//reply.setContent(Integer.toString(numberOfVehicles));
+//					reply.setContent(Integer.toString((int) (Math.random()*10)));
+					reply.setContent(Integer.toString(numberOfVehicles));
 				}
 				else 
 				{
@@ -235,31 +236,47 @@ public class Lane extends Agent {
 	
 	
 	private class RequestRetrieveVehicleServer extends CyclicBehaviour {
+		private int step = 0;
+		MessageTemplate mt;
+		
 		public void action() {
-			MessageTemplate mt = MessageTemplate.and(  
-													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-													MessageTemplate.MatchContent(Settings.CrossToLaneRequestRetrieveVehicle));
-			ACLMessage msg = myAgent.receive(mt);
-			if (msg != null) {
-				ACLMessage reply = msg.createReply();
-				Vehicle vehicle = queue.retrieveVehicle();
-				System.out.println("RequestRetrieveVehicleServer: " + myAgent.getLocalName() + ": " + vehicle.getWaitTime());
-				if( vehicle!=null ) {
-					reply.setPerformative(ACLMessage.INFORM);
-					try {
-						reply.setContentObject(vehicle);
-					} catch (IOException e) {
-						e.printStackTrace();
+			switch (step) {
+				case 0:
+					mt = MessageTemplate.and(  
+											 MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+											 MessageTemplate.MatchContent(Settings.CrossToLaneRequestRetrieveVehicle));
+					ACLMessage msg = myAgent.receive(mt);
+					if (msg != null) {
+						ACLMessage reply = msg.createReply();
+						Vehicle vehicle = queue.retrieveVehicle();
+						System.out.println("RequestRetrieveVehicleServer: " + myAgent.getLocalName() + ": " + vehicle.getWaitTime());
+						if( vehicle!=null ) {
+							reply.setPerformative(ACLMessage.INFORM);
+							try {
+								reply.setContentObject(vehicle);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+						else {
+							reply.setPerformative(ACLMessage.FAILURE);
+							reply.setContent("Can not insert vehicle");
+						}
+						myAgent.send(reply);
+						mt.and(mt, MessageTemplate.MatchReplyWith("cfp" + System.currentTimeMillis()));
+						step = 1;
 					}
-				}
-				else {
-					reply.setPerformative(ACLMessage.FAILURE);
-					reply.setContent("Can not insert vehicle");
-				}
-				myAgent.send(reply);
-			}
-			else {
-				block();
+					else {
+						block();
+					}
+					break;
+				case 1:
+					ACLMessage msg1 = myAgent.receive(mt);
+					if (msg1 != null) {
+						
+					}
+					step = 0;
+					break;
 			}
 		}
 	}
@@ -342,6 +359,10 @@ public class Lane extends Agent {
 		
 		public Vehicle retrieveVehicle() {
 			return queue.remove(0);
+		}
+		
+		public void revomeVehicle() {
+			queue.remove(0);
 		}
 		
 		public void startQueue() {

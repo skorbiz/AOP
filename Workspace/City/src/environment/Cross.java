@@ -5,6 +5,7 @@ import general.Settings;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
@@ -30,7 +31,7 @@ public class Cross extends Agent {
 	// traffic direction, "v" for vertical, "h" for horizontal
 	private String traDir = "v";
 	// Price for changing direction
-	private int chaPri = 2;
+	private int chaPri = 30;
 	// Counter used in the main ticker behaviour to controlles the sub behaviours
 	private int ticks = -1;
 
@@ -39,6 +40,8 @@ public class Cross extends Agent {
 	protected void setup() {
 		// Printout a welcome message
 		System.out.println("Cross-agent " + getAID().getLocalName() + " is ready.");
+		
+		addBehaviour(new RequestDirectionServer());
 	    
 		// Get the title of the book to buy as a start-up argument
 		Object[] args = getArguments();
@@ -76,7 +79,28 @@ public class Cross extends Agent {
 		System.out.println("Cross-agent " + getAID().getLocalName() + " terminating.");
 	}
 	
-	/* function der returnere 0 og 1 for retning */
+
+
+	private class RequestDirectionServer extends CyclicBehaviour {
+		public void action() 
+		{	
+			MessageTemplate mt = MessageTemplate.and(  
+													 MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													 MessageTemplate.MatchContent(Settings.GuiToCrossRequestLights));
+			ACLMessage msg = myAgent.receive(mt);
+			if (msg != null) {
+				// make reply
+				ACLMessage reply = msg.createReply();
+				reply.setPerformative(ACLMessage.INFORM);
+				reply.setContent(traDir);
+				myAgent.send(reply);
+			}
+			else {
+				block();
+			}
+			
+		}
+	}
   
 
 	private class FindingRightLanes extends Behaviour {
@@ -318,11 +342,11 @@ public class Cross extends Agent {
 					vehiclesToMove = 0;
 					ACLMessage cfp2 = new ACLMessage(ACLMessage.REQUEST);
 					if( emptySpacesInLane[0]>0 ) {
-						cfp2.addReceiver(inLaneAgents[0]);
+						cfp2.addReceiver(accInLaneAgents[0]);
 						vehiclesToMove++;
 					}
 					if( emptySpacesInLane[1]>0 ) {
-						cfp2.addReceiver(inLaneAgents[1]);
+						cfp2.addReceiver(accInLaneAgents[1]);
 						vehiclesToMove++;
 					}
 					cfp2.setContent(Settings.CrossToLaneRequestRetrieveVehicle);
@@ -399,7 +423,6 @@ public class Cross extends Agent {
 					}
 					step = 6;
 					break;
-					
 			}
 		}
 		
