@@ -73,6 +73,11 @@ public class MainAgent extends Agent {
 			//Set-up gui agent
 			args = new Object[] {"GUI"};
 			createAgent("GUI","gui.GUIAgent", args);
+						
+			//Set-up gui agent
+			//args = new Object[] {"impactEnvironment"};
+			//createAgent("impactEnvironment","general.impactEnvironmentAgent", args);
+
 			
 //			System.out.println("SetUpAgents OneShotBehaviour ended");
 			
