@@ -30,7 +30,7 @@ public class impactEnvironmentAgent extends Agent
 	Behaviour RequestFreeSpaceBehaviour = new TickerBehaviour( this, 500 )
     {
 		public void onStart(){
-			updateLaneAgents();	
+			updateOuterInputLaneAgents();	
         }
 		
 		protected void onTick(){
@@ -55,8 +55,8 @@ public class impactEnvironmentAgent extends Agent
 
 	
     /******************** Support functions ********************/
-	//Get lane agents	
-	private void updateLaneAgents()
+	//Get outer input lane agents	
+	private void updateOuterInputLaneAgents()
 	{	
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd  = new ServiceDescription();
@@ -66,25 +66,24 @@ public class impactEnvironmentAgent extends Agent
         try 
         {
         	allLaneAgents = DFService.search(this, dfd);
-      
-            ingoingLaneAgents = new DFAgentDescription[Settings.sizex*2 + Settings.sizey*2];
+        	ingoingLaneAgents = new DFAgentDescription[Settings.sizex*2+Settings.sizey*2];
+        	int[] idsOfInputLanes = Settings.getOuterInputLanes();
+        	int index = 0; 
+        	
             for(int i = 0; i < allLaneAgents.length; i++)
-            {	
-            	int agentIdentifier = Settings.covertLocalLaneNameToInt(allLaneAgents[i].getName().getLocalName());
-            	            	
-            	System.out.println("-----------------::: " + agentIdentifier);
-            	if(agentIdentifier < 0)
-            		ingoingLaneAgents[ Math.abs(agentIdentifier) -1] = allLaneAgents[i];
-            		       	
-            }
-
+            	for(int k = 0; k < idsOfInputLanes.length; k++)
+            		if(Settings.covertLocalLaneNameToInt(allLaneAgents[i].getName().getLocalName()) == idsOfInputLanes[k])
+            		{
+                    	ingoingLaneAgents[index] = allLaneAgents[i];
+                    	index++;
+            		}
 		} 
         catch (FIPAException e) { e.printStackTrace(); }
     }
 	
 	//Send request to random lane if it has space to insert car
 	private void requestIfRandomLaneHasSpace()
-	{
+	{		
 	    ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 	    msg.setContent(Settings.CrossToLaneRequesSpaces);	
 	    msg.addReceiver( ingoingLaneAgents[ (int) (Math.random()*ingoingLaneAgents.length) ].getName() );

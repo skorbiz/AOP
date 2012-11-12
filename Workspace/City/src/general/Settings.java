@@ -6,17 +6,17 @@ import jade.lang.acl.MessageTemplate;
 public class Settings 
 {
 
-	/**** GENERAL SETTINGS *****************************/
+/**** GENERAL SETTINGS *****************************/
 	public static int sizex = 3;
-	public static int sizey = 3;
+	public static int sizey = 2;
 	
-	/**** GUI SETTINGS *********************************/
+/**** GUI SETTINGS *********************************/
 	public static int sizexFrame = (sizex+1)*100;
 	public static int sizeyFrame = (sizey+1)*100;
 	public static String nameFrame = "Trafik simulering";
 	
 	
-	/**** JADE CONTENT MESAGES *************************/
+/**** JADE CONTENT MESAGES *************************/
 	public static String GuiToLaneRequestCars 				= "GUI requests number of cars in all lanes";
 	public static String GuiToCrossRequestLights 			= "GUI requests lights in all crosses";
 	public static String CrossToLaneRequestLocalID 			= "Cross request all lanes local ID";
@@ -26,8 +26,8 @@ public class Settings
 	public static String CrossToLaneRequestInsertVehicle 	= "Sending vehicle to lane";
 	
 	
-	/**** SUPPORT FUNCTIONS ****************************/
-	/**** Used generally *******************************/
+/**** SUPPORT FUNCTIONS ****************************/
+/**** Used generally *******************************/
 	/**
 	 * @param	name Local name of a lane agent
 	 * @return 	The ID as an integer
@@ -48,8 +48,14 @@ public class Settings
 		return temp;
 	}
 	
-	/**** SUPPORT FUNCTIONS ***************************/
-	/**** For getting input and output lanes **********/
+/**** SUPPORT FUNCTIONS ***************************/
+/**** For getting input and output lanes **********/
+
+	/**
+	 * @param   cross 	Integer with the cross which needs to find and neighboring cross
+	 * @param	offset 	Number between 0 and 3. 0 = up, 1 = down, 2 = left and 3 = right
+	 * @return 	The correct Lane ID with the givin offset in the given cross
+	 */
 	public static int getLane(int cross, int offset)
 	{
 		return (cross -1)*4 + offset;
@@ -64,10 +70,7 @@ public class Settings
 	 * @return 	Integer with the ID of the special case outgoing lane. 1 if it is no special case.
 	 */
 	private static int findTargetSpecialCase(int cross, int offset)
-	{	//Returns 1 if not a special case.
-		//Else it returns number of target lane
-		//Target lane equals target cross in special cases
-		
+	{	
 		int target = 1;
 
 		if(cross <= sizex && offset == 1)						//Detect special case: target is outgoing lane up
@@ -182,9 +185,44 @@ public class Settings
 		return outputLanes;
 	}
 	
+	/**
+	 * Gets a list of integers with all the identifiers of outer input lanes.
+	 * @return Integer list of the all outer input lanes numbers
+	 */
+	public static int[] getOuterInputLanes()
+	{	
+		int[] inpuLanes = new int[ sizex*2 + sizey*2];
+		
+		int index = 0;
+		for(int i = 0; i < sizex; i++)
+		{
+			inpuLanes[index] = i*4;
+			index++;
+		}
+		
+		for(int i = 0; i < sizex; i++)
+		{
+			inpuLanes[index] = (sizex*(sizey-1)+i)*4+1;
+			index++;
+		}
+		
+		for(int i = 0; i < sizey; i++)
+		{
+			inpuLanes[index] = i*sizex*4+2;
+			index++;
+		}
+
+		for(int i = 0; i < sizey; i++)
+		{
+			inpuLanes[index] = (i*sizex+sizex)*4-1;
+			index++;
+		}
+		
+		return inpuLanes;
+	}	
 	
-	/**** SUPPORT FUNCTIONS ***************************/
-	/**** for indexing input and output lanes into 4 **/
+/**** SUPPORT FUNCTIONS ***************************/
+/**** for indexing input and output lanes into 4 **/
 	public static int inLane(int laneId, int crossId) 
 	{
 		int temp = -1;
@@ -209,7 +247,7 @@ public class Settings
 				else if( crossId>=(sizex*sizey-sizex) && -1*(sizex+sizey+(crossId-1)%sizex+1)==laneId ) { // on down edge
 					temp = 1;
 				}
-				else if( (crossId-1)%sizex==0 && -1*(sizex+sizey+sizex+sizex/crossId)==laneId ) { // on left edge
+				else if( (crossId-1)%sizex==0 && -1*(sizex+sizey+sizex+crossId/sizex)==laneId ) { // on left edge
 					temp = 2;
 				}
 				else if( crossId%sizey==0 && -1*(sizex+crossId/sizex)==laneId ) { // on right edge
@@ -221,13 +259,13 @@ public class Settings
 			else if( (crossId-sizex)*4-1==laneId ) { // up
 				temp = 0;
 			}
-			else if( (crossId+sizex)*4-4==laneId ) { // down
+			else if( (crossId+sizex)*4-3==laneId ) { // down
 				temp = 1;
 			}
-			else if( ((crossId-1)*4-3)==laneId ) { // left
+			else if( ((crossId-1)*4-2)==laneId ) { // left
 				temp = 2;
 			}
-			else if( ((crossId+1)*4-2)==laneId ) { // right
+			else if( ((crossId+1)*4-4)==laneId ) { // right
 				temp = 3;
 			}
 		}
