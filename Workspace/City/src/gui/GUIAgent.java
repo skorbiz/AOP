@@ -25,7 +25,7 @@ public class GUIAgent extends Agent
 
     //Jade communications
     private String lanesRelyWithNumberOfCars = "Reply with number of cars";
-    private String crossRelyWithLights = "Reply with number of cars";
+    private String crossRelyWithLights = "Reply with status of lights";
 
 	Behaviour guiUpdateBehavior = new TickerBehaviour( this, 500 )
     {
@@ -84,6 +84,7 @@ public class GUIAgent extends Agent
         	laneAgents = DFService.search(this, dfd);
 		} 
         catch (FIPAException e) { e.printStackTrace(); }
+
 	}
 
 	//Get cross agents
@@ -123,7 +124,7 @@ public class GUIAgent extends Agent
 	}
 	
 	private void updateLights()
-	{		 
+	{	
 		 int[] lights = new int[Settings.sizex*Settings.sizey];				// Create array for the recived data
 		 for(int i = 0; i < lights.length; i++)								// Initialises with -1 to indicate no change
 			 lights[i] = -1;												//	
@@ -138,12 +139,14 @@ public class GUIAgent extends Agent
 		 for(int i = 0; reply != null; i++)
 		 {			 			 
 			 //Get lane numbers if not outer lanes
-			 int crossNumber = Settings.covertLocalCrossNameToInt(reply.getSender().getLocalName() );
+			int crossNumber = Settings.covertLocalCrossNameToInt(reply.getSender().getLocalName() );
 			 
-			 //Get and save number of cars in the lane
-			 int light = Integer.parseInt(reply.getContent());
-			 lights[crossNumber] = light;
-						 
+			 //Get and save light
+			 if(reply.getContent().contentEquals("v"))
+				 lights[crossNumber-1] = 0;
+			 else if(reply.getContent().contentEquals("h"))
+				 lights[crossNumber-1] = 1;
+
 			 //Retrieve new message
 			 reply = receive( mt );
 				

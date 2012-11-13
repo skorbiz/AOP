@@ -23,6 +23,7 @@ public class Cross extends Agent {
 	
 	// The the identifier of the cross
 	private int crossId;
+	private String typeOfAgent = "cross";
 	// Which agents the cross want to find
 	private String agentToFind = "lane";
 	// The list of input and output lane agents
@@ -40,6 +41,19 @@ public class Cross extends Agent {
 	protected void setup() {
 		// Printout a welcome message
 		System.out.println("Cross-agent " + getAID().getLocalName() + " is ready.");
+		
+		// Register the lane-trading service in the yellow pages
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(getAID());
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType(typeOfAgent);
+		sd.setName("Cross-trading");
+		dfd.addServices(sd);
+		try 
+		{
+			DFService.register(this, dfd);
+		}
+		catch (FIPAException fe) { fe.printStackTrace(); }
 		
 		addBehaviour(new RequestDirectionServer());
 	    
@@ -75,6 +89,11 @@ public class Cross extends Agent {
 
 	// Put agent clean-up operations here
 	protected void takeDown() {
+		try 
+		{
+			DFService.deregister(this);
+		}
+		catch (FIPAException fe) { fe.printStackTrace(); }
 		// Printout a dismissal message
 		System.out.println("Cross-agent " + getAID().getLocalName() + " terminating.");
 	}
@@ -88,7 +107,8 @@ public class Cross extends Agent {
 													 MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
 													 MessageTemplate.MatchContent(Settings.GuiToCrossRequestLights));
 			ACLMessage msg = myAgent.receive(mt);
-			if (msg != null) {
+			if (msg != null) 
+			{
 				// make reply
 				ACLMessage reply = msg.createReply();
 				reply.setPerformative(ACLMessage.INFORM);
