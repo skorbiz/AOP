@@ -125,6 +125,8 @@ public class Cross extends Agent {
 
 	private class FindingRightLanes extends Behaviour {
 		private AID[] laneAgents;
+		private int[] inPutLanesToFind = new int[4];
+		private int[] outPutLanesToFind = new int[4];
 		private String conIdFind = "lane-finding";
 		private int repliesCnt = 0; // The counter of replies from lane agents
 		private MessageTemplate mt; // The template to receive replies
@@ -162,6 +164,10 @@ public class Cross extends Agent {
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdFind),
 	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+
+					inPutLanesToFind = Settings.getInputLanes(crossId);
+					outPutLanesToFind = Settings.getOutputLanes(crossId);
+					
 					step = 2;
 					break;
 				case 2: // Receive all proposals/refusals from lane agents
@@ -169,15 +175,14 @@ public class Cross extends Agent {
 					if (reply != null) {
 						// Reply received
 						if (reply.getPerformative() == ACLMessage.PROPOSE) {
-							// This is an offer
-							int laneId = Integer.parseInt(reply.getContent());
-							int testIn = Settings.inLane(laneId, crossId);
-							int testOut = Settings.outLane(laneId, crossId);
-							if( testIn>-1 ) {
-								inLaneAgents[testIn] = reply.getSender();
-							}
-							else if( testOut>-1 ) {
-								outLaneAgents[testOut] = reply.getSender();
+							int temp = Integer.parseInt(reply.getContent());
+							for( int i=0; i<4; i++) {
+								if( temp==inPutLanesToFind[i] ) {
+									inLaneAgents[i] = reply.getSender();
+								}
+								else if( temp==outPutLanesToFind[i] ) {
+									outLaneAgents[i] = reply.getSender();
+								}
 							}
 						}
 						repliesCnt++;
@@ -423,8 +428,8 @@ public class Cross extends Agent {
 						if( vehicles[0]!=null ) {
 							ACLMessage replyOutLane = new ACLMessage(ACLMessage.PROPAGATE);
 							myAgent.send(replyOutLane);
-							System.out.println("Sending vehicles[0] " + vehicles[0] + " to " + accOutLaneAgents[1].getLocalName() + " (" + vehicles[0].getWaitTime() + ").");
-							replyOutLane.addReceiver(accOutLaneAgents[1]);
+							System.out.println("Sending vehicles[0] " + vehicles[0] + " to " + accOutLaneAgents[0].getLocalName() + " (" + vehicles[0].getWaitTime() + ").");
+							replyOutLane.addReceiver(accOutLaneAgents[0]);
 							replyOutLane.setContentObject((Serializable)vehicles[0]);
 							replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 							myAgent.send(replyOutLane);
@@ -432,8 +437,8 @@ public class Cross extends Agent {
 						if( vehicles[1]!=null ) {
 							ACLMessage replyOutLane = new ACLMessage(ACLMessage.PROPAGATE);
 							myAgent.send(replyOutLane);
-							System.out.println("Sending vehicles[1] " + vehicles[1] + " to " + accOutLaneAgents[0].getLocalName() + " (" + vehicles[1].getWaitTime() + ").");
-							replyOutLane.addReceiver(accOutLaneAgents[0]);
+							System.out.println("Sending vehicles[1] " + vehicles[1] + " to " + accOutLaneAgents[1].getLocalName() + " (" + vehicles[1].getWaitTime() + ").");
+							replyOutLane.addReceiver(accOutLaneAgents[1]);
 							replyOutLane.setContentObject((Serializable)vehicles[1]);
 							replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
 							myAgent.send(replyOutLane);

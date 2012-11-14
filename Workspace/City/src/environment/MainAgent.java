@@ -56,21 +56,15 @@ public class MainAgent extends Agent {
 				args = new Object[] {i};
 				createAgent("Lane"+stg,"environment.Lane",args);
 			}
-			// Set-up special lane agents
-			for(int i=-1; i>-numberOfSpecialInLanes-1; i--) {
-				String stg = Integer.toString(i);
-				args = new Object[] {i};
-				createAgent("Lane"+stg,"environment.Lane",args);
-			}
 			
 			//Propper way to create special case agents. To be implemented when cross is ready.
 			// Set-up special lane agents
-			//int[] specialCaseOutputIDs = Settings.getSpecialCaseOutputLanes();
-			//for(int i=0; i < specialCaseOutputIDs.length; i++) {
-			//	String stg = Integer.toString(specialCaseOutputIDs[i]);
-			//	args = new Object[] {specialCaseOutputIDs[i]};
-			//	createAgent("Lane"+stg,"environment.Lane",args);
-			//}
+			int[] specialCaseOutputIDs = Settings.getSpecialCaseOutputLanes();
+			for(int i=0; i < numberOfSpecialInLanes; i++) {
+				String stg = Integer.toString(specialCaseOutputIDs[i]);
+				args = new Object[] {specialCaseOutputIDs[i]};
+				createAgent("Lane"+stg,"environment.Lane",args);
+			}
 			
 			// Set-up cross agent
 			for(int i=1; i<=numberOfCrosses; i++) {
