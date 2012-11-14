@@ -78,9 +78,14 @@ public class MainAgent extends Agent {
 			createAgent("GUI","gui.GUIAgent", args);
 						
 			//Set-up impact Environment agent
-			//args = new Object[] {"impactEnvironment"};
-			//createAgent("impactEnvironment","general.impactEnvironmentAgent", args);
+			args = new Object[] {"ImpactEnvironment"};
+			createAgent("impactEnvironment","general.ImpactEnvironmentAgent", args);
 
+			//Set-up impact Statistic agent
+			args = new Object[] {"Statistic"};
+			createAgent("Statistic","general.StatisticAgent", args);
+
+			
 			
 //			System.out.println("SetUpAgents OneShotBehaviour ended");
 			

@@ -223,7 +223,7 @@ public class Lane extends Agent {
 				else 
 				{
 					reply.setPerformative(ACLMessage.FAILURE);
-					reply.setContent("Can not insert vehicle");
+					reply.setContent("Can not Send vehicle");
 				}
 				myAgent.send(reply);
 			}

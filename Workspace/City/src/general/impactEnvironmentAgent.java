@@ -20,9 +20,9 @@ import jade.lang.acl.MessageTemplate;
 import general.Settings;
 import gui.GUIInterface;
 
-public class impactEnvironmentAgent extends Agent 
+public class ImpactEnvironmentAgent extends Agent 
 {
-	private String typeOfAgent = "impactEnvirenmentAgent";			// The type of the agent
+	private String typeOfAgent = "ImpactEnvirenmentAgent";			// The type of the agent
     DFAgentDescription[] ingoingLaneAgents;							// A list of all Lane agents
 
     
@@ -34,7 +34,7 @@ public class impactEnvironmentAgent extends Agent
         }
 		
 		protected void onTick(){
-			requestIfRandomLaneHasSpace();
+			requestInsertCarInRandomLane();
         }
     };
 	
@@ -80,9 +80,9 @@ public class impactEnvironmentAgent extends Agent
 		} 
         catch (FIPAException e) { e.printStackTrace(); }
     }
+
 	
-	//Send request to random lane if it has space to insert car
-	private void requestIfRandomLaneHasSpace()
+	private void requestInsertCarInRandomLane()
 	{		
 	    ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 	    msg.setContent(Settings.CrossToLaneRequesSpaces);	
