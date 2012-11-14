@@ -25,7 +25,7 @@ public class Lane extends Agent {
 	private QueueLane queue;				// Queue for vehicle
 
 	protected void setup() {
-		//System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
+//		System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
 		
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
@@ -37,7 +37,7 @@ public class Lane extends Agent {
 			queue = new QueueLane();
 			
 			// insert cars into lane
-			for(int i=0; i<5; i++) {
+			for(int i=0; i<5; i++) { // (int) (Math.random()*5)
 				queue.insertVehicle(new Car());
 			}
 			
@@ -74,7 +74,7 @@ public class Lane extends Agent {
 		}
 		else {
 			// Make the agent terminate
-			System.out.println("Not all parameters are specified in Lane agent");
+			System.err.println("Not all parameters are specified in Lane agent");
 			doDelete();
 		}
 	}
@@ -87,7 +87,7 @@ public class Lane extends Agent {
 		}
 		catch (FIPAException fe) { fe.printStackTrace(); }
 		// Printout a dismissal message
-		System.out.println("Lane-agent "+getAID().getLocalName()+" terminating.");
+		System.err.println("Lane-agent "+getAID().getLocalName()+" terminating.");
 	}
   
 	
@@ -213,8 +213,6 @@ public class Lane extends Agent {
 				Vehicle vehicle = queue.retrieveVehicle();
 				if( vehicle != null ) 
 				{
-					System.out.println("RequestRetrieveVehicleServer: " + myAgent.getLocalName() + ": " + vehicle.getWaitTime());
-
 					reply.setPerformative(ACLMessage.INFORM);
 					try 
 					{
@@ -246,25 +244,15 @@ public class Lane extends Agent {
 					Vehicle vehicle = (Vehicle) msg.getContentObject();
 					long temp = vehicle.getWaitTime();
 					test = queue.insertVehicle( (Vehicle) vehicle );
-					if( test ) 
-					{
-						System.out.println(myAgent.getLocalName() + " inserted " + vehicle + " (" + temp + "=>" + vehicle.getWaitTime() + ").");
-					}
-					else 
-						System.out.println("Error");
 				}
 				catch (Exception ex) { ex.printStackTrace(); }
 							
 //				ACLMessage reply = msg.createReply();
-//				
 //				if ( test ) {
-//					System.out.println("Lane INFORM");
 //					reply.setPerformative(ACLMessage.INFORM);
 //				}
 //				else {
-//					System.out.println("Lane FAILURE");
 //					reply.setPerformative(ACLMessage.FAILURE);
-//					reply.setContent("Can not insert vehicle");
 //				}
 //				myAgent.send(reply);
 			}

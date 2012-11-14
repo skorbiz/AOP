@@ -40,7 +40,7 @@ public class Cross extends Agent {
 	// Put agent initializations here
 	protected void setup() {
 		// Printout a welcome message
-		System.out.println("Cross-agent " + getAID().getLocalName() + " is ready.");
+//		System.out.println("Cross-agent " + getAID().getLocalName() + " is ready.");
 		
 		// Register the lane-trading service in the yellow pages
 		DFAgentDescription dfd = new DFAgentDescription();
@@ -61,7 +61,6 @@ public class Cross extends Agent {
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			crossId = (Integer) args[0];
-			System.out.println("cross identifier are: " + crossId);
 			
 			// Add a TickerBehaviour that schedules a request to seller agents every minute
 			addBehaviour(new TickerBehaviour(this, 5000) {
@@ -81,10 +80,9 @@ public class Cross extends Agent {
 		}
 		else {
 			// Make the agent terminate
-			System.out.println("Not all parameters are specified");
+			System.err.println("Not all parameters are specified");
 			doDelete();
 		}
-		System.out.println();
 	}
 
 	// Put agent clean-up operations here
@@ -95,7 +93,7 @@ public class Cross extends Agent {
 		}
 		catch (FIPAException fe) { fe.printStackTrace(); }
 		// Printout a dismissal message
-		System.out.println("Cross-agent " + getAID().getLocalName() + " terminating.");
+		System.err.println("Cross-agent " + getAID().getLocalName() + " terminating.");
 	}
 	
 
@@ -142,7 +140,6 @@ public class Cross extends Agent {
 					try {
 						DFAgentDescription[] result = DFService.search(myAgent, template); 
 						laneAgents = new AID[result.length];
-						System.out.println("Found " + result.length + " " + agentToFind + " agent(s).");
 						for (int i = 0; i < result.length; ++i) {
 							laneAgents[i] = result[i].getName();
 						}
@@ -189,15 +186,6 @@ public class Cross extends Agent {
 						if (repliesCnt >= laneAgents.length) {
 							// We received all replies
 							step = 3;
-							System.out.println(myAgent.getLocalName() + " in0: " + inLaneAgents[0].getLocalName());
-							System.out.println(myAgent.getLocalName() + " in1: " + inLaneAgents[1].getLocalName());
-							System.out.println(myAgent.getLocalName() + " in2: " + inLaneAgents[2].getLocalName());
-							System.out.println(myAgent.getLocalName() + " in3: " + inLaneAgents[3].getLocalName());
-							System.out.println(myAgent.getLocalName() + " out0: " + outLaneAgents[0].getLocalName());
-							System.out.println(myAgent.getLocalName() + " out1: " + outLaneAgents[1].getLocalName());
-							System.out.println(myAgent.getLocalName() + " out2: " + outLaneAgents[2].getLocalName());
-							System.out.println(myAgent.getLocalName() + " out3: " + outLaneAgents[3].getLocalName());
-							System.out.println("");
 						}
 					}
 					else {
@@ -259,21 +247,16 @@ public class Cross extends Agent {
 						repliesCnt++;
 						if (repliesCnt >= inLaneAgents.length) {
 							// We received all replies
-							System.out.println(inLaneAgents[0].getLocalName() + " offers: " + offers[0]);
-							System.out.println(inLaneAgents[1].getLocalName() + " offers: " + offers[1]);
-							System.out.println(inLaneAgents[2].getLocalName() + " offers: " + offers[2]);
-							System.out.println(inLaneAgents[3].getLocalName() + " offers: " + offers[3]);
 							if( offers[0]+offers[1]+chaPri>offers[2]+offers[3] ) { // vertical
 								traDir = "v";
-								System.out.println("Trafic direction: up/down (" + traDir + ")");
 								chaPri = 2;
 							}
 							else { // horizontal
 								chaPri = -2;
 								traDir = "h";
-								System.out.println("Trafic direction: left/right (" + traDir + ")");
 							}
-							System.out.println("");
+							if(Settings.print)
+								System.out.println(myAgent.getLocalName() + " has trafic direction " + traDir + ".");
 							step = 3;
 						}
 					}
@@ -305,7 +288,6 @@ public class Cross extends Agent {
 		public void action() {
 			switch (step) {
 				case 0: // initalization of variables.
-					System.out.println();
 					emptySpacesInLane[0] = -1;
 					emptySpacesInLane[1] = -1;
 					vehicles[0] = null;
@@ -356,7 +338,6 @@ public class Cross extends Agent {
 						if (repliesCnt >= 2) {
 							// We received all replies
 							step = 3;
-							System.out.println("Empty spaces in outgoing lane: " + emptySpacesInLane[0] + ", " + emptySpacesInLane[1] + ".");
 						}
 					}
 					else {
@@ -398,14 +379,11 @@ public class Cross extends Agent {
 						if (replyInLane.getPerformative() == ACLMessage.INFORM) {
 							try {
 								// This is an offer
-								System.out.println("Vehicle " + replyInLane.getContentObject() + " received from " + replyInLane.getSender().getLocalName() + " into ");
 								if( accInLaneAgents[0].compareTo(replyInLane.getSender())==0 ) {
 									vehicles[0] = (Vehicle) replyInLane.getContentObject();
-									System.out.println("vehicles[0]: " + vehicles[0].getWaitTime());
 								}
 								if ( accInLaneAgents[1].compareTo(replyInLane.getSender())==0 ) {
 									vehicles[1] = (Vehicle) replyInLane.getContentObject();
-									System.out.println("vehicles[1]: " + vehicles[1].getWaitTime());
 								}
 							}
 							catch (Exception ex) {
@@ -424,11 +402,11 @@ public class Cross extends Agent {
 					break;
 				case 5: // Sending vehicle to the right outgoing lane.
 					try {
-						System.out.println("Vehicles to send: " + vehicles[0] + " and " + vehicles[1] + ".");
+						if(Settings.print)
+							System.out.println("Cross " + crossId + " sending vehicles " + vehicles[0] + " to " + accOutLaneAgents[0].getLocalName() + " and " + vehicles[1] + " to " + accOutLaneAgents[1].getLocalName() + ".");
 						if( vehicles[0]!=null ) {
 							ACLMessage replyOutLane = new ACLMessage(ACLMessage.PROPAGATE);
 							myAgent.send(replyOutLane);
-							System.out.println("Sending vehicles[0] " + vehicles[0] + " to " + accOutLaneAgents[0].getLocalName() + " (" + vehicles[0].getWaitTime() + ").");
 							replyOutLane.addReceiver(accOutLaneAgents[0]);
 							replyOutLane.setContentObject((Serializable)vehicles[0]);
 							replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
@@ -437,7 +415,6 @@ public class Cross extends Agent {
 						if( vehicles[1]!=null ) {
 							ACLMessage replyOutLane = new ACLMessage(ACLMessage.PROPAGATE);
 							myAgent.send(replyOutLane);
-							System.out.println("Sending vehicles[1] " + vehicles[1] + " to " + accOutLaneAgents[1].getLocalName() + " (" + vehicles[1].getWaitTime() + ").");
 							replyOutLane.addReceiver(accOutLaneAgents[1]);
 							replyOutLane.setContentObject((Serializable)vehicles[1]);
 							replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value

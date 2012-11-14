@@ -16,6 +16,8 @@ public class Settings
 	public static int sizeyFrame = (sizey+1)*100;
 	public static String nameFrame = "Trafik simulering";
 	
+/**** DEBUG SETTINGS *********************************/
+	public static boolean print = true;
 	
 /**** JADE CONTENT MESAGES *************************/
 	public static String GuiToLaneRequestCars 				= "GUI requests number of cars in all lanes";
