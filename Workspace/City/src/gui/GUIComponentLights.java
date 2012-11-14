@@ -42,14 +42,13 @@ public class GUIComponentLights extends JComponent {
 		double stepSizeX = windowSizeX/(sizeX+1);
 		double stepSizeY = windowSizeY/(sizeY+1);
 		int loops = 0;
-
 		for(int i = (int) stepSizeY; i < windowSizeY; i += stepSizeY)
 			for(int j = (int) stepSizeX; j < windowSizeX; j += stepSizeX)
 			{
-				Ellipse2D.Double ellipseTop 	= new Ellipse2D.Double(i-2, j-6, width, height);
-				Ellipse2D.Double ellipseButtom 	= new Ellipse2D.Double(i-2, j+2, width, height);
-				Ellipse2D.Double ellipseLeft 	= new Ellipse2D.Double(i-6, j-2, width, height);
-				Ellipse2D.Double ellipseRight 	= new Ellipse2D.Double(i+2, j-2, width, height);
+				Ellipse2D.Double ellipseTop 	= new Ellipse2D.Double(j-2, i-6, width, height);
+				Ellipse2D.Double ellipseButtom 	= new Ellipse2D.Double(j-2, i+2, width, height);
+				Ellipse2D.Double ellipseLeft 	= new Ellipse2D.Double(j-6, i-2, width, height);
+				Ellipse2D.Double ellipseRight 	= new Ellipse2D.Double(j+2, i-2, width, height);
 	
 				Color colorUD = Color.red;
 				Color colorLR = Color.red;

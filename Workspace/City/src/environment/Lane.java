@@ -11,7 +11,6 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.Random;
 import java.io.IOException;
@@ -234,7 +233,7 @@ public class Lane extends Agent {
 				block();
 		}
 	}
-	
+		
 	private class InsertVehicleServer extends CyclicBehaviour {
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchPerformative( ACLMessage.PROPAGATE );
@@ -270,9 +269,7 @@ public class Lane extends Agent {
 //				myAgent.send(reply);
 			}
 			else 
-			{
 				block();
-			}
 		}
 	}
 	

@@ -63,6 +63,15 @@ public class MainAgent extends Agent {
 				createAgent("Lane"+stg,"environment.Lane",args);
 			}
 			
+			//Propper way to create special case agents. To be implemented when cross is ready.
+			// Set-up special lane agents
+			//int[] specialCaseOutputIDs = Settings.getSpecialCaseOutputLanes();
+			//for(int i=0; i < specialCaseOutputIDs.length; i++) {
+			//	String stg = Integer.toString(specialCaseOutputIDs[i]);
+			//	args = new Object[] {specialCaseOutputIDs[i]};
+			//	createAgent("Lane"+stg,"environment.Lane",args);
+			//}
+			
 			// Set-up cross agent
 			for(int i=1; i<=numberOfCrosses; i++) {
 				String stg = Integer.toString(i);
@@ -73,6 +82,11 @@ public class MainAgent extends Agent {
 			//Set-up gui agent
 			args = new Object[] {"GUI"};
 			createAgent("GUI","gui.GUIAgent", args);
+						
+			//Set-up impact Environment agent
+			//args = new Object[] {"impactEnvironment"};
+			//createAgent("impactEnvironment","general.impactEnvironmentAgent", args);
+
 			
 //			System.out.println("SetUpAgents OneShotBehaviour ended");
 			

@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
-import vehicle.Vehicle;
-
 public class GUImain 
 {
 	private JFrame frame = new JFrame();
@@ -30,6 +28,11 @@ public class GUImain
 	
 	public GUImain() throws Exception
 	{
+		System.out.println( 0 == -0);
+		System.out.println("Hello World");
+		
+		
+		/*
 		int[] lightsDefault = new int[settings.sizex*settings.sizey];
 		int[] carsDefault = new int[settings.sizex*settings.sizey*4];
 		for(int i = 0; i < carsDefault.length; i++)
@@ -38,7 +41,7 @@ public class GUImain
 		createFrame();
 		drawLights(lightsDefault);
 		drawCars(carsDefault);
-		
+		*/
 	}
 	
 	public void updateFrame(int[] theLights, int[] theCars)
