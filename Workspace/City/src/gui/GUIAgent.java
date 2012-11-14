@@ -187,7 +187,7 @@ public class GUIAgent extends Agent
 			 reply = receive( mt );
 				
 		 }
-		guiInterface.updateCars( cars );
+		//guiInterface.updateCars( cars );
 	}
 	
 }
