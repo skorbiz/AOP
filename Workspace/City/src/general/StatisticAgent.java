@@ -21,9 +21,9 @@ import general.Settings;
 
 public class StatisticAgent extends Agent 
 {
-	private String typeOfAgent = "StatisticAgent";			// The type of the agent
-    DFAgentDescription[] outgoingLaneAgents;				// A list of all Lane agents
-    StatisticInterface statistic = new StatisticInterface();
+	private String typeOfAgent = "StatisticAgent";						// The type of the agent
+    DFAgentDescription[] outgoingLaneAgents;							// A list of all Lane agents
+    StatisticInterface statistic = StatisticInterface.getInstance();	// Singleton constructer for the class used for applying statistics 
     
     /******************** Setup the agent ********************/
 	Behaviour behaviourRequestAllOutgoingCars = new TickerBehaviour( this, 500 )
@@ -41,7 +41,9 @@ public class StatisticAgent extends Agent
 	
     Behaviour behaviourProcessRecivedCars = new CyclicBehaviour()
     {
-		public void action(){
+		public void action()
+		{
+			recivedOutputVehicle();
 		}
     };
     
@@ -78,21 +80,14 @@ public class StatisticAgent extends Agent
                     	index++;
             		}
 		} 
-        catch (FIPAException e) { e.printStackTrace(); }		
-		
-		//for(int j = 0; j < outgoingLaneAgents.length; j++)
-		//	if(outgoingLaneAgents[j] == null)
-		//		updateOuterOutputLaneAgents();
-			
-			//System.out.println(outgoingLaneAgents[j].getName().getLocalName());
-
+        catch (FIPAException e) { e.printStackTrace(); }					
     }
 
 	
 	private void requestAllOutputVehicle()
 	{
-	//	for (int i = 0; i< outgoingLaneAgents.length; i++)
-	//		requestOutputVehicle( outgoingLaneAgents[i].getName() );
+		for (int i = 0; i< outgoingLaneAgents.length; i++)
+			requestOutputVehicle( outgoingLaneAgents[i].getName() );
 	}
 	
 	private void requestOutputVehicle(AID agentName)
@@ -106,18 +101,16 @@ public class StatisticAgent extends Agent
 	private void recivedOutputVehicle()
 	{	
 		MessageTemplate mt = MessageTemplate.MatchPerformative( ACLMessage.INFORM );	
-		ACLMessage reply = receive( mt );
-		
+		ACLMessage reply = receive(mt);
+
+
 		if(reply != null)	
 		{
 			try 
 			{
 				requestOutputVehicle( reply.getSender() );				//See if lane has more cars
-				
-				Vehicle vehicle;										//Extract vehicle
-				vehicle = (Vehicle) reply.getContentObject();
+				Vehicle vehicle = (Vehicle) reply.getContentObject();
 				statistic.addVehicle(vehicle);
-				
 			} catch (UnreadableException e) { e.printStackTrace(); }
 			
 		}
