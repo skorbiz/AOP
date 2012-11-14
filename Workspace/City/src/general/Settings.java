@@ -4,8 +4,8 @@ public class Settings
 {
 
 	/**** GENERAL SETTINGS *****************************/
-	public static int sizex = 5;
-	public static int sizey = 5;
+	public static int sizex = 3;
+	public static int sizey = 2;
 	
 	/**** GUI SETTINGS *********************************/
 	public static int sizexFrame = (sizex+1)*100;
@@ -55,43 +55,36 @@ public class Settings
 	{
 		int temp = -1;
 		
-		// special case if cross on edge
 		if( laneId != 0 ) { // lane 0 is never output lane
-			if( laneId<0 ) {
-				if( crossId<=sizex && -1*crossId==laneId ) { // on top edge
-					temp = 0;
-//					System.out.print("SPECIAL0 ");
-				}
-				else if( crossId>=(sizex*sizey-sizex) && -1*(sizex+sizey+(crossId-1)%sizex+1)==laneId ) { // on down edge
-					temp = 1;
-//					System.out.print("SPECIAL1 ");
-				}
-				else if( (crossId-1)%sizex==0 && -1*(sizex+sizey+sizex+sizex/crossId)==laneId ) { // on left edge
-					temp = 2;
-//					System.out.print("SPECIAL2 ");
-				}
-				else if( crossId%sizey==0 && -1*(sizex+crossId/sizex)==laneId ) { // on right edge
-					temp = 3;
-//					System.out.print("SPECIAL3 ");
-				}
-			}
+			// special case if lane is input to edge cross
 			
-			// normal case if cross is not on edge
-			else if( (crossId-sizex)*4-1==laneId ) { // up
+			if( crossId<=sizex && -1*crossId==laneId ) { // on top edge
 				temp = 0;
-//				System.out.print("NORMAL0 ");
 			}
-			else if( (crossId+sizex)*4-4==laneId ) { // down
+			else if( crossId>=(sizex*sizey-sizex) && -1*(sizex+sizey+(sizex*sizey-crossId))==laneId ) { // on down edge
 				temp = 1;
-//				System.out.print("NORMAL1 ");
 			}
-			else if( ((crossId-1)*4-3)==laneId ) { // left
+			else if( (crossId-1)%sizex==0 && -1*(sizex+sizey+sizex+sizey-crossId/sizex)==laneId ) { // on left edge
 				temp = 2;
-//				System.out.print("NORMAL2 ");
 			}
-			else if( ((crossId+1)*4-2)==laneId ) { // right
+			else if( crossId%sizey==0 && -1*(sizex+crossId/sizex)==laneId ) { // on right edge
 				temp = 3;
-//				System.out.print("NORMAL3 ");
+			}
+
+			// normal case if lane is input to normal cross
+			else {
+				if( (crossId-1-sizex)*4+1==laneId ) { // up
+					temp = 0;
+				}
+				else if( (crossId-1+sizex)*4+0==laneId ) { // down
+					temp = 1;
+				}
+				else if( ((crossId-1)*4-1)==laneId ) { // left
+					temp = 2;
+				}
+				else if( ((crossId+1)*4-2)==laneId ) { // right
+					temp = 3;
+				}
 			}
 		}
 		return temp;

@@ -153,10 +153,10 @@ public class Cross extends Agent {
 							int laneId = Integer.parseInt(reply.getContent());
 							int testIn = Settings.inLane(laneId, crossId);
 							int testOut = Settings.outLane(laneId, crossId);
-							if( testIn!=-1 ) {
+							if( testIn>-1 ) {
 								inLaneAgents[testIn] = reply.getSender();
 							}
-							else if( testOut!=-1 ) {
+							else if( testOut>-1 ) {
 								outLaneAgents[testOut] = reply.getSender();
 							}
 						}
