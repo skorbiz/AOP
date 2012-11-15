@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.net.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
@@ -13,6 +15,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 import general.Settings;
+import general.StatisticInterface;
 
 public class GUIInterface 
 {
@@ -49,6 +52,17 @@ public class GUIInterface
 		GUIComponentRoads Roads = new GUIComponentRoads();
 		frame.add(Roads);		
 		frame.setVisible(true);	
+		
+		//Set close oporation
+		frame.addWindowListener(new WindowAdapter()
+		{
+			public void windowClosing(WindowEvent e)
+			{
+				StatisticInterface stat = StatisticInterface.getInstance();
+				stat.calculateAndSaveStatistics();
+				System.exit(0);
+			}
+		});
 	}
 	
 	//Update the drawn lights

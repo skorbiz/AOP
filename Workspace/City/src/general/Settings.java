@@ -8,8 +8,9 @@ public class Settings
 
 
 /**** GENERAL SETTINGS *****************************/
-	public static int sizex = 3;
-	public static int sizey = 2;
+	public static int sizex = 4;
+	public static int sizey = 4;
+	public static int insertNewCarInterval = 1500;
 	
 /**** GUI SETTINGS *********************************/
 	public static int sizexFrame = (sizex+1)*100;
@@ -17,7 +18,7 @@ public class Settings
 	public static String nameFrame = "Trafik simulering";
 	
 /**** DEBUG SETTINGS *********************************/
-	public static boolean print = true;
+	public static boolean print = false;
 	
 /**** JADE CONTENT MESAGES *************************/
 	public static String GuiToLaneRequestCars 				= "GUI requests number of cars in all lanes";

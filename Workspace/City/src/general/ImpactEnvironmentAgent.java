@@ -27,7 +27,7 @@ public class ImpactEnvironmentAgent extends Agent
 
     
     /******************** Setup the agent ********************/
-	Behaviour RequestFreeSpaceBehaviour = new TickerBehaviour( this, 500 )
+	Behaviour RequestFreeSpaceBehaviour = new TickerBehaviour( this, Settings.insertNewCarInterval )
     {
 		public void onStart(){
 			updateOuterInputLaneAgents();	
