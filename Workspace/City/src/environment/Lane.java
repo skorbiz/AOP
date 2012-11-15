@@ -36,9 +36,9 @@ public class Lane extends Agent {
 			queue = new QueueLane();
 			
 			// insert cars into lane
-			for(int i=0; i<5; i++) { // (int) (Math.random()*5)
-				queue.insertVehicle(new Car());
-			}
+			//for(int i=0; i<5; i++) { // (int) (Math.random()*5)
+			//	queue.insertVehicle(new Car());
+			//}
 			
 			// Register the lane-trading service in the yellow pages
 			DFAgentDescription dfd = new DFAgentDescription();

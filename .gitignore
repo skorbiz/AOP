@@ -1,5 +1,6 @@
 Workspace/.metadata/*
 Workspace/.DS_Store*
+.DS_Store*
 *.classpath
 *.project
 *.settings
