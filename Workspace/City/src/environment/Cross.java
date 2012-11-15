@@ -6,8 +6,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.TickerBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -23,6 +22,7 @@ public class Cross extends Agent {
 	
 	// The the identifier of the cross
 	private int crossId;
+	// The type of this agent
 	private String typeOfAgent = "cross";
 	// Which agents the cross want to find
 	private String agentToFind = "lane";
@@ -32,51 +32,84 @@ public class Cross extends Agent {
 	// traffic direction, "v" for vertical, "h" for horizontal
 	private String traDir = "v";
 	// Price for changing direction
-	private int chaPri = 30;
-	// Counter used in the main ticker behaviour to controlles the sub behaviours
-	private int ticks = -1;
+	private int chaPri = 10;
 
 	
-	// Put agent initializations here
+	/**
+	 * Initialization of the agent.
+	 */
 	protected void setup() {
 		// Printout a welcome message
-//		System.out.println("Cross-agent " + getAID().getLocalName() + " is ready.");
-		
-		// Register the lane-trading service in the yellow pages
+		if(Settings.print)
+			System.out.println("Cross-agent " + getAID().getLocalName() + " is ready.");
+
+		// Register the service of the cross to the directory facilitator (yellow pages)
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType(typeOfAgent);
 		sd.setName("Cross-trading");
 		dfd.addServices(sd);
-		try 
-		{
+		try {
 			DFService.register(this, dfd);
 		}
-		catch (FIPAException fe) { fe.printStackTrace(); }
-		
-		addBehaviour(new RequestDirectionServer());
+		catch (FIPAException fe) {
+			fe.printStackTrace();
+		}
 	    
-		// Get the title of the book to buy as a start-up argument
+		// Get the identifier of the cross and add behaviours
 		Object[] args = getArguments();
-		if (args != null && args.length > 0) {
+		if ( args!=null && args.length>0 ) {
 			crossId = (Integer) args[0];
 			
-			// Add a TickerBehaviour that schedules a request to seller agents every minute
-			addBehaviour(new TickerBehaviour(this, 5000) {
-				protected void onTick() {
-					if( ticks==-1 ) {
-						addBehaviour(new FindingRightLanes());
-					}
-					else if( ticks%3==0 ) {
-						addBehaviour(new RequestLaneOffers());
-					}
-					else {
-						addBehaviour(new MovingCars());
-					}
-					ticks++;
+			// Add CyclicBehaviour: gui can request the light
+			addBehaviour(new RequestDirection());
+			
+			// Add WakerBehaviour:
+			addBehaviour(new WakerBehaviour(this, 1000) {
+				public void onStart() {
+					// Add Behaviour: finding the right lanes
+					addBehaviour(new FindingRightLanes());
+				};
+				
+				protected void onWake() {
+					addBehaviour(new RequestLaneOffers());
+					reset(10000);
 				}
 			} );
+						
+			// Add WakerBehaviour: for complex controlling of cross behaviours
+			addBehaviour(new WakerBehaviour(this, 2000) {
+				// used on switch-case
+				private int step = 0;
+				private String oldTrafficDir = traDir;
+				private String newTrafficDir = traDir;
+				
+				protected void onWake() {
+					int resetTime = 0;
+					switch (step) {
+						case 0:
+							newTrafficDir = traDir;
+							if( oldTrafficDir.compareTo(newTrafficDir)==0 ) {
+								resetTime = 2000;
+							}
+							else
+								resetTime = 6000;
+							oldTrafficDir = newTrafficDir;
+							step = 1;
+							if( Settings.print )
+								System.out.println(myAgent.getLocalName() + " waiting " + resetTime + "ms.");
+							break;
+						case 1:
+							addBehaviour(new MovingVehicle());
+							resetTime = 0;
+							step = 0;
+							break;
+					}
+					reset(resetTime);
+				}
+			} );
+			
 		}
 		else {
 			// Make the agent terminate
@@ -85,8 +118,12 @@ public class Cross extends Agent {
 		}
 	}
 
-	// Put agent clean-up operations here
+	
+	/**
+	 * Takedown the agent
+	 */
 	protected void takeDown() {
+		// deregister the service of the cross from the directory facilitator (yellow pages)
 		try 
 		{
 			DFService.deregister(this);
@@ -97,13 +134,14 @@ public class Cross extends Agent {
 	}
 	
 
-
-	private class RequestDirectionServer extends CyclicBehaviour {
+	/**
+	 * Reply the gui with the current traffic direction.
+	 */
+	private class RequestDirection extends CyclicBehaviour {
 		public void action() 
 		{	
-			MessageTemplate mt = MessageTemplate.and(  
-													 MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-													 MessageTemplate.MatchContent(Settings.GuiToCrossRequestLights));
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													 MessageTemplate.MatchContent( Settings.GuiToCrossRequestLights ));
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) 
 			{
@@ -121,14 +159,25 @@ public class Cross extends Agent {
 	}
   
 
+	/**
+	 * 
+	 */
 	private class FindingRightLanes extends Behaviour {
+		// used on switch-case
+		private int step = 0;
+		// The template to receive replies
+		private MessageTemplate mt;
+		// The counter of replies from lane agents
+		private int repliesCnt = 0;
+		// conversations ID of this behaviour
+		private String conIdFind = "lane-finding";
+		
+		// array of AID used to store all lane agents
 		private AID[] laneAgents;
+		// numbers of input and output lane IDs
 		private int[] inPutLanesToFind = new int[4];
 		private int[] outPutLanesToFind = new int[4];
-		private String conIdFind = "lane-finding";
-		private int repliesCnt = 0; // The counter of replies from lane agents
-		private MessageTemplate mt; // The template to receive replies
-		private int step = 0;
+
 	
 		public void action() {
 			switch (step) {
@@ -149,29 +198,29 @@ public class Cross extends Agent {
 					}
 					step = 1;
 					break;
-				case 1: // Send the cfp to all lanes
-					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
+				case 1: // Send the request message to all lanes
+					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 					for (int i = 0; i < laneAgents.length; ++i) {
-						cfp.addReceiver(laneAgents[i]);
+						msg.addReceiver(laneAgents[i]);
 					} 
-					cfp.setContent(Settings.CrossToLaneRequestLocalID);
-					cfp.setConversationId(conIdFind);
-					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-					myAgent.send(cfp);
+					msg.setContent(Settings.CrossToLaneRequestLocalID);
+					msg.setConversationId(conIdFind);
+					msg.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					myAgent.send(msg);
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdFind),
-	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+											 MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 
 					inPutLanesToFind = Settings.getInputLanes(crossId);
 					outPutLanesToFind = Settings.getOutputLanes(crossId);
 					
 					step = 2;
 					break;
-				case 2: // Receive all proposals/refusals from lane agents
+				case 2: // Receive proposals/refusals from all lane agents
 					ACLMessage reply = myAgent.receive(mt);
 					if (reply != null) {
-						// Reply received
 						if (reply.getPerformative() == ACLMessage.PROPOSE) {
+							// test if the replying lane is a input or output lane
 							int temp = Integer.parseInt(reply.getContent());
 							for( int i=0; i<4; i++) {
 								if( temp==inPutLanesToFind[i] ) {
@@ -184,7 +233,7 @@ public class Cross extends Agent {
 						}
 						repliesCnt++;
 						if (repliesCnt >= laneAgents.length) {
-							// We received all replies
+							// All replies received
 							step = 3;
 						}
 					}
@@ -201,33 +250,39 @@ public class Cross extends Agent {
 	}
 	
 	private class RequestLaneOffers extends Behaviour {
-		private String conIdOffer = "lane-offers";
-		private int repliesCnt = 0; // The counter of replies from seller agents
-		private MessageTemplate mt;
-		private int[] offers = new int[4];
+		// used on switch-case
 		private int step = 0;
+		// The template to receive replies
+		private MessageTemplate mt;
+		// The counter of replies from lane agents
+		private int repliesCnt = 0;
+		// conversations ID of this behaviour
+		private String conIdOffer = "lane-offers";
+		
+		// used for offers from the four lanes
+		private int[] offers = new int[4];
 
 		public void action() {
 			switch (step) {
-				case 0:
+				case 0: // initalization of variables.
 					offers[0] = -1;
 					offers[1] = -1;
 					offers[2] = -1;
 					offers[3] = -1;
 					step = 1;
 					break;
-				case 1: // Send the cfp to in lanes lanes
-					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
+				case 1: // Send the request message to input lanes agents
+					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 					for (int i = 0; i < inLaneAgents.length; ++i) {
-						cfp.addReceiver(inLaneAgents[i]);
+						msg.addReceiver(inLaneAgents[i]);
 					} 
-					cfp.setContent(Settings.CrossToLaneRequesOffers);
-					cfp.setConversationId(conIdOffer);
-					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-					myAgent.send(cfp);
+					msg.setContent(Settings.CrossToLaneRequesOffers);
+					msg.setConversationId(conIdOffer);
+					msg.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					myAgent.send(msg);
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdOffer),
-	                MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+											 MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
 					step = 2;
 					break;
 				case 2: // Receive all proposals/refusals from lane agents
@@ -246,14 +301,15 @@ public class Cross extends Agent {
 						}
 						repliesCnt++;
 						if (repliesCnt >= inLaneAgents.length) {
-							// We received all replies
-							if( offers[0]+offers[1]+chaPri>offers[2]+offers[3] ) { // vertical
+							System.out.println(offers[0] + "+" + offers[1] + " + " + chaPri + " > " + offers[2] + "+" + offers[3]);
+							// All replies received
+							if( (offers[0]+offers[1]+chaPri)>(offers[2]+offers[3]) ) { // vertical
 								traDir = "v";
-								chaPri = 2;
+								chaPri = 50;
 							}
 							else { // horizontal
-								chaPri = -2;
 								traDir = "h";
+								chaPri = -50;
 							}
 							if(Settings.print)
 								System.out.println(myAgent.getLocalName() + " has trafic direction " + traDir + ".");
@@ -274,15 +330,24 @@ public class Cross extends Agent {
 	}
 	
 	
-	private class MovingCars extends Behaviour {
+	private class MovingVehicle extends Behaviour {
+		// used on switch-case
 		private int step = 0;
+		// The template to receive replies
 		private MessageTemplate mt;
+		// The counter of replies from lane agents
 		private int repliesCnt = 0;
+		// conversations ID of this behaviour
 		private String conIdMove = "lane-Move";
+		
+		// used for storing the empty spaces from input lanes
 		private int[] emptySpacesInLane = new int[2];
+		// used of store the right input and output lanes based on the traffic direction
 		private AID[] accInLaneAgents = new AID[2];
 		private AID[] accOutLaneAgents = new AID[2];
+		// store the vehicles there is about to be send across
 		private Vehicle[] vehicles = new Vehicle[2];
+		// to count the number of lanes there has to reply if there is able to move a vehicle
 		private int vehiclesToMove = 0;
 		
 		public void action() {
@@ -307,25 +372,24 @@ public class Cross extends Agent {
 					}
 					step = 1;
 					break;
-				case 1: // Sending request to the right outgoing lanes to know the number of free spaces in queue.
-					ACLMessage cfp = new ACLMessage(ACLMessage.REQUEST);
-					cfp.addReceiver(accOutLaneAgents[0]);
-					cfp.addReceiver(accOutLaneAgents[1]);
-					cfp.setContent(Settings.CrossToLaneRequesSpaces);
-					cfp.setConversationId(conIdMove);
-					cfp.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-					myAgent.send(cfp);
+				case 1: // Sending request to the right outgoing lanes to get the number of free spaces in there lane.
+					ACLMessage msgFreeSpace = new ACLMessage(ACLMessage.REQUEST);
+					msgFreeSpace.addReceiver(accOutLaneAgents[0]);
+					msgFreeSpace.addReceiver(accOutLaneAgents[1]);
+					msgFreeSpace.setContent(Settings.CrossToLaneRequesSpaces);
+					msgFreeSpace.setConversationId(conIdMove);
+					msgFreeSpace.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					myAgent.send(msgFreeSpace);
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
-											 MessageTemplate.MatchInReplyTo(cfp.getReplyWith()));
+											 MessageTemplate.MatchInReplyTo(msgFreeSpace.getReplyWith()));
 					step = 2;
 					break;
-				case 2: // Receive all inform/failure from lane agents about free spaces in queue.
+				case 2: // Receive all inform/failure from lane agents about free spaces in lane.
 					ACLMessage reply = myAgent.receive(mt);
 					if (reply != null) {
-						// Reply received
 						if (reply.getPerformative() == ACLMessage.INFORM) {
-							// This is an answer
+							// Stores the number of free spaces in the right place
 							int emptySpaces = Integer.parseInt(reply.getContent());
 							if( accOutLaneAgents[0].compareTo(reply.getSender())==0 ) {
 								emptySpacesInLane[0] = emptySpaces;
@@ -336,7 +400,7 @@ public class Cross extends Agent {
 						}
 						repliesCnt++;
 						if (repliesCnt >= 2) {
-							// We received all replies
+							// All replies received
 							step = 3;
 						}
 					}
@@ -344,41 +408,42 @@ public class Cross extends Agent {
 						block();
 					}
 					break;
-				case 3: // If the outgoing lane has a free space in the queue, request the opposite incoming lane for a vehicle.
-					vehiclesToMove = 0;
-					ACLMessage cfp2 = new ACLMessage(ACLMessage.REQUEST);
+				case 3: // If the outgoing lane has a free space in the lane, a request for a vehicle to the opposite input lane is made.
+					repliesCnt = 0;
+					ACLMessage msgGetVehicle = new ACLMessage(ACLMessage.REQUEST);
 					if( emptySpacesInLane[0]>0 ) {
-						cfp2.addReceiver(accInLaneAgents[0]);
-						vehiclesToMove++;
+						msgGetVehicle.addReceiver(accInLaneAgents[0]);
+						repliesCnt++;
 					}
 					if( emptySpacesInLane[1]>0 ) {
-						cfp2.addReceiver(accInLaneAgents[1]);
-						vehiclesToMove++;
+						msgGetVehicle.addReceiver(accInLaneAgents[1]);
+						repliesCnt++;
 					}
-					cfp2.setContent(Settings.CrossToLaneRequestRetrieveVehicle);
-					cfp2.setConversationId(conIdMove);
-					cfp2.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-					myAgent.send(cfp2);
+					msgGetVehicle.setContent(Settings.CrossToLaneRequestRetrieveVehicle);
+					msgGetVehicle.setConversationId(conIdMove);
+					msgGetVehicle.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					myAgent.send(msgGetVehicle);
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
-					MessageTemplate.MatchInReplyTo(cfp2.getReplyWith()));
-					if( vehiclesToMove>0 )
+											 MessageTemplate.MatchInReplyTo(msgGetVehicle.getReplyWith()));
+					if( repliesCnt>0 )
 					{
+						// if there are vehicles to move
 						step = 4;
 					}
 					else {
-						System.out.println(myAgent.getLocalName() + ": Out lanes have no space for vehicle!");
+						// no vehicles to move
+						if(Settings.print)
+							System.out.println(myAgent.getLocalName() + ": Out lanes have no space for vehicle!");
 						step = 6;
 					}
 					break;
-				case 4: // Receiving vehicle from the right incoming lane.
-					repliesCnt = 0;
+				case 4: // Receiving vehicle from the right input lane.
 					ACLMessage replyInLane = myAgent.receive(mt);
 					if (replyInLane != null) {
-						// Reply received
 						if (replyInLane.getPerformative() == ACLMessage.INFORM) {
 							try {
-								// This is an offer
+								// Saves the vehicle in the right place
 								if( accInLaneAgents[0].compareTo(replyInLane.getSender())==0 ) {
 									vehicles[0] = (Vehicle) replyInLane.getContentObject();
 								}
@@ -390,9 +455,9 @@ public class Cross extends Agent {
 								ex.printStackTrace();
 							}
 						}
-						vehiclesToMove--;
-						if( vehiclesToMove == repliesCnt ) {
-							// We received all replies
+						repliesCnt--;
+						if( repliesCnt==0 ) {
+							// All replies received
 							step = 5;
 						}
 					}
@@ -405,20 +470,20 @@ public class Cross extends Agent {
 						if(Settings.print)
 							System.out.println("Cross " + crossId + " sending vehicles " + vehicles[0] + " to " + accOutLaneAgents[0].getLocalName() + " and " + vehicles[1] + " to " + accOutLaneAgents[1].getLocalName() + ".");
 						if( vehicles[0]!=null ) {
-							ACLMessage replyOutLane = new ACLMessage(ACLMessage.PROPAGATE);
-							myAgent.send(replyOutLane);
-							replyOutLane.addReceiver(accOutLaneAgents[0]);
-							replyOutLane.setContentObject((Serializable)vehicles[0]);
-							replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-							myAgent.send(replyOutLane);
+							ACLMessage replyOutLane1 = new ACLMessage(ACLMessage.PROPAGATE);
+							myAgent.send(replyOutLane1);
+							replyOutLane1.addReceiver(accOutLaneAgents[0]);
+							replyOutLane1.setContentObject((Serializable)vehicles[0]);
+							replyOutLane1.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+							myAgent.send(replyOutLane1);
 						}
 						if( vehicles[1]!=null ) {
-							ACLMessage replyOutLane = new ACLMessage(ACLMessage.PROPAGATE);
-							myAgent.send(replyOutLane);
-							replyOutLane.addReceiver(accOutLaneAgents[1]);
-							replyOutLane.setContentObject((Serializable)vehicles[1]);
-							replyOutLane.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
-							myAgent.send(replyOutLane);
+							ACLMessage replyOutLane2 = new ACLMessage(ACLMessage.PROPAGATE);
+							myAgent.send(replyOutLane2);
+							replyOutLane2.addReceiver(accOutLaneAgents[1]);
+							replyOutLane2.setContentObject((Serializable)vehicles[1]);
+							replyOutLane2.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+							myAgent.send(replyOutLane2);
 						}
 					} catch (IOException e) {
 						e.printStackTrace();

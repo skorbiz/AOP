@@ -12,9 +12,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.System;
 
 
@@ -25,7 +23,8 @@ public class Lane extends Agent {
 	private QueueLane queue;				// Queue for vehicle
 
 	protected void setup() {
-//		System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
+		if(Settings.print)
+			System.out.println("Lane-agent "+getAID().getLocalName()+" is ready.");
 		
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
@@ -246,15 +245,6 @@ public class Lane extends Agent {
 					test = queue.insertVehicle( (Vehicle) vehicle );
 				}
 				catch (Exception ex) { ex.printStackTrace(); }
-							
-//				ACLMessage reply = msg.createReply();
-//				if ( test ) {
-//					reply.setPerformative(ACLMessage.INFORM);
-//				}
-//				else {
-//					reply.setPerformative(ACLMessage.FAILURE);
-//				}
-//				myAgent.send(reply);
 			}
 			else 
 				block();
