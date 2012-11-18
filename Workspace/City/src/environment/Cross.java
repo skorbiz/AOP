@@ -30,13 +30,15 @@ public class Cross extends Agent {
 	private AID[] inLaneAgents = new AID[4];
 	private AID[] outLaneAgents = new AID[4];
 	// traffic direction, "v" for vertical, "h" for horizontal
-	private String traDir = "v";
+	private String traDir = Settings.verticalDef;
 	// Price for changing direction
-	private int chaPri = 10;
+	private int chaPri = Settings.priceForChangingDirection;
+	// Vehicles to move before traffic direction can be changed again because of emergency vehicle
+	private int emerVehCnt = 0;
 
 	
 	/**
-	 * Initialization of the agent.
+	 * Initialization of the cross agent.
 	 */
 	protected void setup() {
 		// Printout a welcome message
@@ -65,7 +67,8 @@ public class Cross extends Agent {
 			// Add CyclicBehaviour: gui can request the light
 			addBehaviour(new RequestDirection());
 			
-			// Add WakerBehaviour:
+			
+			// Add WakerBehaviour: for changing direction
 			addBehaviour(new WakerBehaviour(this, 1000) {
 				public void onStart() {
 					// Add Behaviour: finding the right lanes
@@ -73,12 +76,15 @@ public class Cross extends Agent {
 				};
 				
 				protected void onWake() {
-					addBehaviour(new RequestLaneOffers());
-					reset(10000);
+					// Complex control of cross
+//					addBehaviour(new RequestLaneOffers());
+					// 50/50 % control of direction
+					changeDirectionEqual();
+					reset(Settings.timeBetweenDirectionChange);
 				}
 			} );
 						
-			// Add WakerBehaviour: for complex controlling of cross behaviours
+			// Add WakerBehaviour: for moving vehicle
 			addBehaviour(new WakerBehaviour(this, 2000) {
 				// used on switch-case
 				private int step = 0;
@@ -91,13 +97,13 @@ public class Cross extends Agent {
 						case 0:
 							newTrafficDir = traDir;
 							if( oldTrafficDir.compareTo(newTrafficDir)==0 ) {
-								resetTime = 2000;
+								resetTime = Settings.timeBetweenMovingVehicleSameDirection;
 							}
 							else
-								resetTime = 6000;
+								resetTime = Settings.timeBetweenMovingVehicleUppersitDirection;
 							oldTrafficDir = newTrafficDir;
 							step = 1;
-							if( Settings.print )
+							if( Settings.printMoveVehicleInterval )
 								System.out.println(myAgent.getLocalName() + " waiting " + resetTime + "ms.");
 							break;
 						case 1:
@@ -133,9 +139,23 @@ public class Cross extends Agent {
 		System.err.println("Cross-agent " + getAID().getLocalName() + " terminating.");
 	}
 	
+	
+	/**
+	 * Used for changing direction in 50/50% mode.
+	 */
+	private void changeDirectionEqual() {
+		if( traDir.compareTo(Settings.verticalDef)==0 ) {
+			traDir = "h";
+		}
+		else if( traDir.compareTo(Settings.horizontalDef)==0 ) {
+			traDir = "v";
+		}
+	}
+	
 
 	/**
-	 * Reply the gui with the current traffic direction.
+	 * Behaviour:
+	 * Reply the GUI with the current traffic direction.
 	 */
 	private class RequestDirection extends CyclicBehaviour {
 		public void action() 
@@ -160,7 +180,9 @@ public class Cross extends Agent {
   
 
 	/**
-	 * 
+	 * Behaviour:
+	 * Used ones under initialization locate the right in- and outgoing lanes,
+	 * and store them in array for later use.
 	 */
 	private class FindingRightLanes extends Behaviour {
 		// used on switch-case
@@ -205,7 +227,7 @@ public class Cross extends Agent {
 					} 
 					msg.setContent(Settings.CrossToLaneRequestLocalID);
 					msg.setConversationId(conIdFind);
-					msg.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					msg.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
 					myAgent.send(msg);
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdFind),
@@ -249,6 +271,12 @@ public class Cross extends Agent {
 		}
 	}
 	
+	
+	/**
+	 * Behaviour:
+	 * Used for requesting the offers from the ingoing lanes,
+	 * and based on this changing direction.
+	 */
 	private class RequestLaneOffers extends Behaviour {
 		// used on switch-case
 		private int step = 0;
@@ -264,7 +292,7 @@ public class Cross extends Agent {
 
 		public void action() {
 			switch (step) {
-				case 0: // initalization of variables.
+				case 0: // Initialization of variables.
 					offers[0] = -1;
 					offers[1] = -1;
 					offers[2] = -1;
@@ -278,7 +306,7 @@ public class Cross extends Agent {
 					} 
 					msg.setContent(Settings.CrossToLaneRequesOffers);
 					msg.setConversationId(conIdOffer);
-					msg.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					msg.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
 					myAgent.send(msg);
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdOffer),
@@ -301,18 +329,17 @@ public class Cross extends Agent {
 						}
 						repliesCnt++;
 						if (repliesCnt >= inLaneAgents.length) {
-							System.out.println(offers[0] + "+" + offers[1] + " + " + chaPri + " > " + offers[2] + "+" + offers[3]);
 							// All replies received
 							if( (offers[0]+offers[1]+chaPri)>(offers[2]+offers[3]) ) { // vertical
-								traDir = "v";
-								chaPri = 50;
+								traDir = Settings.verticalDef;
+								chaPri = Settings.priceForChangingDirection;
 							}
 							else { // horizontal
-								traDir = "h";
-								chaPri = -50;
+								traDir = Settings.horizontalDef;
+								chaPri = -Settings.priceForChangingDirection;
 							}
-							if(Settings.print)
-								System.out.println(myAgent.getLocalName() + " has trafic direction " + traDir + ".");
+							if(Settings.printTrafficDirection)
+								System.out.println(myAgent.getLocalName() + ": " + offers[0] + "+" + offers[1] + " + " + chaPri + " > " + offers[2] + "+" + offers[3] + " (trafic direction now: " + traDir + ".");
 							step = 3;
 						}
 					}
@@ -330,6 +357,13 @@ public class Cross extends Agent {
 	}
 	
 	
+	/**
+	 * Behaviour:
+	 * Used for moving vehicle across the cross.
+	 * Checking if the outgoing lanes has space for one more vehicle,
+	 * if this is true, a request for the next vehicle in line form the opposite ingoing lane is made,
+	 * and this vehicle is moved to the outgoing lane. 
+	 */
 	private class MovingVehicle extends Behaviour {
 		// used on switch-case
 		private int step = 0;
@@ -342,33 +376,34 @@ public class Cross extends Agent {
 		
 		// used for storing the empty spaces from input lanes
 		private int[] emptySpacesInLane = new int[2];
-		// used of store the right input and output lanes based on the traffic direction
+		// used of store the right input and output lanes based on the current traffic direction
 		private AID[] accInLaneAgents = new AID[2];
 		private AID[] accOutLaneAgents = new AID[2];
 		// store the vehicles there is about to be send across
 		private Vehicle[] vehicles = new Vehicle[2];
-		// to count the number of lanes there has to reply if there is able to move a vehicle
-		private int vehiclesToMove = 0;
 		
 		public void action() {
 			switch (step) {
-				case 0: // initalization of variables.
+				case 0: // Initialization of variables.
 					emptySpacesInLane[0] = -1;
 					emptySpacesInLane[1] = -1;
 					vehicles[0] = null;
 					vehicles[1] = null;
 					repliesCnt = 0;
-					if( traDir.compareTo("v")==0 ) {
+					if( traDir.compareTo(Settings.verticalDef)==0 ) {
 						accInLaneAgents[0] = inLaneAgents[0];
 						accInLaneAgents[1] = inLaneAgents[1];
 						accOutLaneAgents[0] = outLaneAgents[0];
 						accOutLaneAgents[1] = outLaneAgents[1];
 					}
-					else {
+					else if( traDir.compareTo(Settings.horizontalDef)==0 ) {
 						accInLaneAgents[0] = inLaneAgents[2];
 						accInLaneAgents[1] = inLaneAgents[3];
 						accOutLaneAgents[0] = outLaneAgents[2];
 						accOutLaneAgents[1] = outLaneAgents[3];
+					}
+					else { // traffic direction is not vertical or horizontal
+						step = 6;
 					}
 					step = 1;
 					break;
@@ -378,7 +413,7 @@ public class Cross extends Agent {
 					msgFreeSpace.addReceiver(accOutLaneAgents[1]);
 					msgFreeSpace.setContent(Settings.CrossToLaneRequesSpaces);
 					msgFreeSpace.setConversationId(conIdMove);
-					msgFreeSpace.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					msgFreeSpace.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
 					myAgent.send(msgFreeSpace);
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
@@ -421,7 +456,7 @@ public class Cross extends Agent {
 					}
 					msgGetVehicle.setContent(Settings.CrossToLaneRequestRetrieveVehicle);
 					msgGetVehicle.setConversationId(conIdMove);
-					msgGetVehicle.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+					msgGetVehicle.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
 					myAgent.send(msgGetVehicle);
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdMove),
@@ -474,7 +509,7 @@ public class Cross extends Agent {
 							myAgent.send(replyOutLane1);
 							replyOutLane1.addReceiver(accOutLaneAgents[0]);
 							replyOutLane1.setContentObject((Serializable)vehicles[0]);
-							replyOutLane1.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+							replyOutLane1.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
 							myAgent.send(replyOutLane1);
 						}
 						if( vehicles[1]!=null ) {
@@ -482,7 +517,7 @@ public class Cross extends Agent {
 							myAgent.send(replyOutLane2);
 							replyOutLane2.addReceiver(accOutLaneAgents[1]);
 							replyOutLane2.setContentObject((Serializable)vehicles[1]);
-							replyOutLane2.setReplyWith("cfp" + System.currentTimeMillis()); // Unique value
+							replyOutLane2.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
 							myAgent.send(replyOutLane2);
 						}
 					} catch (IOException e) {

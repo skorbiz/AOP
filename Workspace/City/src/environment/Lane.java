@@ -35,11 +35,6 @@ public class Lane extends Agent {
 			// Create the vehicle queue
 			queue = new QueueLane();
 			
-			// insert cars into lane
-			//for(int i=0; i<5; i++) { // (int) (Math.random()*5)
-			//	queue.insertVehicle(new Car());
-			//}
-			
 			// Register the lane-trading service in the yellow pages
 			DFAgentDescription dfd = new DFAgentDescription();
 			dfd.setName(getAID());
@@ -68,7 +63,7 @@ public class Lane extends Agent {
 			// Add the behavior serving sending vehicle to cross agents
 			addBehaviour(new RequestRetrieveVehicleServer());
 			
-			// Add the behavior serving reveiving vehicle from cross agents
+			// Add the behavior serving receiving vehicle from cross agents
 			addBehaviour(new InsertVehicleServer());
 		}
 		else {
@@ -156,7 +151,6 @@ public class Lane extends Agent {
 				ACLMessage reply = msg.createReply();
 				reply.setPerformative(ACLMessage.INFORM);
 				int numberOfVehicles = queue.getNumberOfVehicles();
-				//reply.setContent(Integer.toString((int) (Math.random()*10)));
 				reply.setContent(Integer.toString(numberOfVehicles));
 				myAgent.send(reply);
 			}

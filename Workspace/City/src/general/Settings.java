@@ -8,8 +8,8 @@ public class Settings
 
 
 /**** GENERAL SETTINGS *****************************/
-	public static int sizex = 4;
-	public static int sizey = 4;
+	public static int sizex = 2;
+	public static int sizey = 2;
 	public static int insertNewCarInterval = 1500;
 	
 /**** GUI SETTINGS *********************************/
@@ -17,8 +17,18 @@ public class Settings
 	public static int sizeyFrame = (sizey+1)*100;
 	public static String nameFrame = "Trafik simulering";
 	
+/**** CROSS SETTINGS *********************************/
+	public static int timeBetweenDirectionChange = 10000;
+	public static int timeBetweenMovingVehicleSameDirection = 2000;
+	public static int timeBetweenMovingVehicleUppersitDirection = 6000;
+	public static String verticalDef = "v";
+	public static String horizontalDef = "h";
+	public static int priceForChangingDirection = 50;
+	
 /**** DEBUG SETTINGS *********************************/
 	public static boolean print = false;
+	public static boolean printMoveVehicleInterval = true;
+	public static boolean printTrafficDirection = true;
 	
 /**** JADE CONTENT MESAGES *************************/
 	public static String GuiToLaneRequestCars 				= "GUI requests number of cars in all lanes";
