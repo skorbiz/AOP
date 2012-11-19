@@ -54,7 +54,7 @@ public class StatisticInterface
 		
 		TotalWaitTime = 0;
 		for(int i = 0; i < vehicles.size(); i++)
-			TotalWaitTime += vehicles.get(i).getWaitTime()/1000;
+			TotalWaitTime += vehicles.get(i).getTotalWaitTime()/1000;
 		
 		ThroughputCars =     TotalCarsThroug / ( (double) runTime );
 		ThroughputWaitTime = TotalWaitTime / ( (double) runTime );
@@ -63,7 +63,7 @@ public class StatisticInterface
 		
 		varianceWaitTime = 0;
 		for(int i = 0; i < vehicles.size(); i++)
-			varianceWaitTime += Math.pow( (((double)vehicles.get(i).getWaitTime()) /1000) - meanWaitTime , 2.0);
+			varianceWaitTime += Math.pow( (((double)vehicles.get(i).getTotalWaitTime()) /1000) - meanWaitTime , 2.0);
 		varianceWaitTime *= 1/TotalCarsThroug;
 		
 		varianceWaitTime = Math.sqrt(varianceWaitTime);
@@ -96,6 +96,11 @@ public class StatisticInterface
 		writeLineInFile(out, "Wait time mean: ", meanWaitTime);
 		writeLineInFile(out, "Wait time variance: ", varianceWaitTime);
 
+		for(int i = 0; i < vehicles.size(); i++)
+		{
+			out.write(Integer.toString((int) (vehicles.get(i).getTotalWaitTime()/1000)));
+			out.write("\n");
+		}
 		//Close the output stream
 		out.close();
 		}catch (Exception e){}
