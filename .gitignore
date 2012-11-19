@@ -1,5 +1,9 @@
 Workspace/.metadata/*
 Workspace/.DS_Store*
+Workspace/City/html
+Workspace/City/latex
+*.doxyfile
+
 .DS_Store*
 *.classpath
 *.project
@@ -13,3 +17,4 @@ Workspace/.DS_Store*
 *.jar
 *.war
 *.ear
+*~

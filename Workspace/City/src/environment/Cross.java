@@ -29,6 +29,8 @@ public class Cross extends Agent {
 	// The list of input and output lane agents
 	private AID[] inLaneAgents = new AID[4];
 	private AID[] outLaneAgents = new AID[4];
+	// The list of surrounding cross agent
+	private AID[] crossAgents = new AID[4];
 	// traffic direction, "v" for vertical, "h" for horizontal
 	private String traDir = Settings.verticalDef;
 	// Price for changing direction
@@ -76,10 +78,14 @@ public class Cross extends Agent {
 				};
 				
 				protected void onWake() {
-					// Complex control of cross
-//					addBehaviour(new RequestLaneOffers());
-					// 50/50 % control of direction
-					changeDirectionEqual();
+					if( emerVehCnt==0 ) { // Only allowed to change direction if no vehicles has to be mode before a emergency vehicle
+						if( Settings.modeForChangingTrafficDirection==Settings.modeSimple ) { // 50/50 % control of direction
+							changeDirectionEqual();
+						}
+						else if( Settings.modeForChangingTrafficDirection==Settings.modeComplex ) { // Complex control of cross
+							addBehaviour(new RequestLaneOffers());						
+						}
+					}
 					reset(Settings.timeBetweenDirectionChange);
 				}
 			} );
@@ -203,7 +209,20 @@ public class Cross extends Agent {
 	
 		public void action() {
 			switch (step) {
-				case 0: // Update the list of lane agents
+				case 0: // Initialization of variables.
+					inPutLanesToFind = Settings.getInputLanes(crossId);
+					outPutLanesToFind = Settings.getOutputLanes(crossId);
+					inLaneAgents[0] = null;
+					inLaneAgents[1] = null;
+					inLaneAgents[2] = null;
+					inLaneAgents[3] = null;
+					outLaneAgents[0] = null;
+					outLaneAgents[1] = null;
+					outLaneAgents[2] = null;
+					outLaneAgents[3] = null;
+					step = 1;
+					break;
+				case 1: // Update the list of lane agents
 					DFAgentDescription template = new DFAgentDescription();
 					ServiceDescription sd = new ServiceDescription();
 					sd.setType(agentToFind);
@@ -217,10 +236,10 @@ public class Cross extends Agent {
 					}
 					catch (FIPAException fe) {
 						fe.printStackTrace();
-					}
-					step = 1;
+					}					
+					step = 2;
 					break;
-				case 1: // Send the request message to all lanes
+				case 2: // Send the request message to all lanes
 					ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
 					for (int i = 0; i < laneAgents.length; ++i) {
 						msg.addReceiver(laneAgents[i]);
@@ -232,13 +251,9 @@ public class Cross extends Agent {
 					// Prepare the template to get proposals
 					mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdFind),
 											 MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
-
-					inPutLanesToFind = Settings.getInputLanes(crossId);
-					outPutLanesToFind = Settings.getOutputLanes(crossId);
-					
-					step = 2;
+					step = 3;
 					break;
-				case 2: // Receive proposals/refusals from all lane agents
+				case 3: // Receive proposals/refusals from all lane agents
 					ACLMessage reply = myAgent.receive(mt);
 					if (reply != null) {
 						if (reply.getPerformative() == ACLMessage.PROPOSE) {
@@ -256,7 +271,7 @@ public class Cross extends Agent {
 						repliesCnt++;
 						if (repliesCnt >= laneAgents.length) {
 							// All replies received
-							step = 3;
+							step = 4;
 						}
 					}
 					else {
@@ -267,7 +282,7 @@ public class Cross extends Agent {
 		}
 		
 		public boolean done() {
-			return (step == 3);
+			return (step == 4);
 		}
 	}
 	
@@ -523,6 +538,15 @@ public class Cross extends Agent {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+					
+					// for emergency vehicles
+					if( emerVehCnt>0 ) {
+						emerVehCnt--;
+						if( emerVehCnt==0 ) {
+							
+						}
+					}
+					
 					step = 6;
 					break;
 			}
@@ -531,6 +555,98 @@ public class Cross extends Agent {
 		public boolean done() {
 			return (step == 6);
 		}
+	}
+	
+	
+	private class EmergencyVehiclePropagate extends CyclicBehaviour {
+		// The template to receive replies
+		private MessageTemplate mt;
+
+		public void action() {
+			mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.INFORM ),
+									 MessageTemplate.MatchContent( Settings.CrossToCrossInformEmergencyMoved ));
+			ACLMessage msgInf = myAgent.receive(mt);
+			if (msgInf != null) {
+				
+			}
+			else {
+				block();
+			}
+		}
+		
+	}
+	
+	
+	/**
+	 * 
+	 */
+	private class EmergencyVehicleInform extends CyclicBehaviour {
+		// used on switch-case
+		private int step = 0;
+		// The template to receive replies
+		private MessageTemplate mt;
+		// conversations ID of this behaviour
+		private String conIdEme = "lane-eme";
+		
+		private int tempEmerVehCnt = 0;
+		
+		private int agentNumber = 0;
+
+		public void action() {
+			switch (step) {
+				case 0:
+					mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.INFORM ),
+											 MessageTemplate.MatchContent( Settings.CrossToCrossInformEmergency ));
+					ACLMessage msgInf = myAgent.receive(mt);
+					if (msgInf != null) 
+					{
+
+						for(int i=0; i<4; i++) {
+							if( crossAgents[i]==msgInf.getSender() ) {
+								
+								agentNumber = i;
+								
+								tempEmerVehCnt = Integer.parseInt(msgInf.getContent());
+								
+								ACLMessage msgReq = new ACLMessage(ACLMessage.REQUEST);
+								msgReq.addReceiver(inLaneAgents[i]);
+								msgReq.setContent(Settings.CrossToLaneRequestLocalID);
+								msgReq.setConversationId(conIdEme);
+								msgReq.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
+								myAgent.send(msgReq);
+								// Prepare the template to get proposals
+								mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdEme),
+														 MessageTemplate.MatchInReplyTo(msgReq.getReplyWith()));
+								step = 1;
+								break;
+							}
+						}
+					}
+					else {
+						block();
+					}
+					break;
+				case 1:
+					ACLMessage msgPro = myAgent.receive(mt);
+					if (msgPro != null) 
+					{
+						emerVehCnt = Integer.parseInt(msgPro.getContent()) + tempEmerVehCnt;
+						
+						if( agentNumber==0 || agentNumber==1 ) {
+							traDir = Settings.verticalDef;
+						}
+						else {
+							traDir = Settings.horizontalDef;
+						}
+						
+						step = 0;
+					}
+					else {
+						block();
+					}
+					break;
+			}
+		}	
 	}
 	
 }

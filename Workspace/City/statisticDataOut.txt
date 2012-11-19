@@ -1,9 +1,9 @@
-Grid size x:       	2
-Grid size y:       	2
-Run time:       	66
-Total cars through: 	2.0
-Total wait time: 	4.0
-Throughput cars: 	0.030303030303030304
-Throughput wait time: 	0.06060606060606061
-Wait time mean: 	2.0
-Wait time variance: 	0.8945001397428622
+Grid size x:       	4
+Grid size y:       	4
+Run time:       	936
+Total cars through: 	535.0
+Total wait time: 	218365.0
+Throughput cars: 	0.5715811965811965
+Throughput wait time: 	233.29594017094018
+Wait time mean: 	408.1588785046729
+Wait time variance: 	233.77609501881346

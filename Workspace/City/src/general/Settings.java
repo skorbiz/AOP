@@ -8,8 +8,8 @@ public class Settings
 
 
 /**** GENERAL SETTINGS *****************************/
-	public static int sizex = 2;
-	public static int sizey = 2;
+	public static int sizex = 4;
+	public static int sizey = 4;
 	public static int insertNewCarInterval = 1500;
 	
 /**** GUI SETTINGS *********************************/
@@ -18,6 +18,9 @@ public class Settings
 	public static String nameFrame = "Trafik simulering";
 	
 /**** CROSS SETTINGS *********************************/
+	public static int modeForChangingTrafficDirection = 0;
+	public static int modeSimple = 0; // for 50/50%
+	public static int modeComplex = 1; // for complex.
 	public static int timeBetweenDirectionChange = 10000;
 	public static int timeBetweenMovingVehicleSameDirection = 2000;
 	public static int timeBetweenMovingVehicleUppersitDirection = 6000;
@@ -38,6 +41,8 @@ public class Settings
 	public static String CrossToLaneRequesSpaces 			= "Requesting the number of free spaces in queue from lane";
 	public static String CrossToLaneRequestRetrieveVehicle 	= "Requesting vehicle from lane";
 	public static String CrossToLaneRequestInsertVehicle 	= "Sending vehicle to lane";
+	public static String CrossToCrossInformEmergency		= "Inform about emergency vehicle in ingoing lane";
+	public static String CrossToCrossInformEmergencyMoved	= "Inform about emergency vehicle has been moved";
 	
 	
 /**** SUPPORT FUNCTIONS ****************************/
