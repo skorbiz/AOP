@@ -84,4 +84,9 @@ public class Vehicle implements Serializable {
 		updateVehicleDistanceAndSpeed();
 		return lastUpdatedeTime - startTimeInLane;
 	}
+	
+	public long getTotalWaitTime()
+	{
+		return lastUpdatedeTime - startTimeInSystem;
+	}
 }

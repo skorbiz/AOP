@@ -18,3 +18,5 @@ Workspace/City/latex
 *.war
 *.ear
 *~
+
+Workspace/Algorithm/src/test.java
