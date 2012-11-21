@@ -27,11 +27,20 @@ public class Settings
 	public static String verticalDef = "v";
 	public static String horizontalDef = "h";
 	public static int priceForChangingDirection = 50;
+
+/**** INSERT NEW CARS SETTINGS *********************************/
+	public static boolean changeInsertionTimeEverySample = true;
+	public static int changeInInsertionTimeEverySample = -100;
+	
+/**** TESTING SETTINGS *********************************/
+	public static long timeBetweenSamplingsInMilliSeconds = 1000*60*3;
 	
 /**** DEBUG SETTINGS *********************************/
 	public static boolean print = false;
-	public static boolean printMoveVehicleInterval = true;
-	public static boolean printTrafficDirection = true;
+	public static boolean printMoveVehicleInterval = false;
+	public static boolean printTrafficDirection = false;
+	public static boolean printStartOfNewSamples = true;
+
 	
 /**** JADE CONTENT MESAGES *************************/
 	public static String GuiToLaneRequestCars 				= "GUI requests number of cars in all lanes";

@@ -43,6 +43,7 @@ public class StatisticAgent extends Agent
     {
 		public void action()
 		{
+			statistic.checkAndInisiateNewSample();
 			recivedOutputVehicle();
 		}
     };
@@ -117,9 +118,5 @@ public class StatisticAgent extends Agent
 		else
 			behaviourProcessRecivedCars.block();		
 	}
-}	
 
-/** SPØRGSMÅL
-* Hvad sker der med ulæste beskeder?
-* 
-**/
+}	
