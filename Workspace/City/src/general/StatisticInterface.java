@@ -113,15 +113,27 @@ public class StatisticInterface
 		writeLineInFile(out, "Sample Number:", sampleNumber);
 		writeLineInFile(out, "Sample time:", Settings.timeBetweenSamplingsInMilliSeconds /1000);
 
-		writeLineInFile(out, "Insert new cars every [ms]: ", Settings.insertNewCarInterval);
+		writeLineInFile(out, "Insert cars [ms]: ", Settings.insertNewCarInterval);
 		if(Settings.changeInsertionTimeEverySample == true)
 		{
-			out.write("Increases insertion time every sample \n");
-			writeLineInFile(out, "Changes in insertion time every sample: ", Settings.changeInInsertionTimeEverySample);
+			out.write("Insertion time \t\t changes \n");
+			writeLineInFile(out, "time changes [ms]: ", Settings.changeInInsertionTimeEverySample);
 		}
 		else
-			out.write("constant insertion time every sample \n");
-				
+			out.write("Insertion time \t\t constant \n");
+
+		
+		if(Settings.modeForChangingTrafficDirection == 0)
+		{
+			out.write("Cross changes: \t\t simple mode \n");
+			writeLineInFile(out, "Change time:       ", Settings.modeForChangingTrafficDirection);
+		}
+		else
+			out.write("Cross changes: \t\t complex mode \n");
+		
+		writeLineInFile(out, "Moving vehicle [ms]: ", Settings.timeBetweenMovingVehicleSameDirection);
+		writeLineInFile(out, "Change direction [ms]: ", Settings.timeBetweenMovingVehicleUppersitDirection);
+
 		//writeLineInFile(out, "Start time:     ", (int) Start time);
 		//writeLineInFile(out, "End time: ", (int) End time);
 		writeLineInFile(out, "Grid size x:       ", Settings.sizex);
