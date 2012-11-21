@@ -110,26 +110,26 @@ public class StatisticInterface
 		FileWriter fstream = new FileWriter("sample" + Integer.toString(sampleNumber) +".txt");
 		BufferedWriter out = new BufferedWriter(fstream);
 
-		writeLineInFile(out, "Sample Number:", sampleNumber);
-		writeLineInFile(out, "Sample time:", Settings.timeBetweenSamplingsInMilliSeconds /1000);
+		writeLineInFile(out, "Sample Number:      ", sampleNumber);
+		writeLineInFile(out, "Sample time:      ", Settings.timeBetweenSamplingsInMilliSeconds /1000);
 
 		writeLineInFile(out, "Insert cars [ms]: ", Settings.insertNewCarInterval);
 		if(Settings.changeInsertionTimeEverySample == true)
 		{
-			out.write("Insertion time \t\t changes \n");
+			out.write("Insertion time \t\tchanges \n");
 			writeLineInFile(out, "time changes [ms]: ", Settings.changeInInsertionTimeEverySample);
 		}
 		else
-			out.write("Insertion time \t\t constant \n");
+			out.write("Insertion time \t\tconstant \n");
 
 		
 		if(Settings.modeForChangingTrafficDirection == 0)
 		{
-			out.write("Cross changes: \t\t simple mode \n");
+			out.write("Cross changes: \t\tsimple mode \n");
 			writeLineInFile(out, "Change time:       ", Settings.modeForChangingTrafficDirection);
 		}
 		else
-			out.write("Cross changes: \t\t complex mode \n");
+			out.write("Cross changes: \t\tcomplex mode \n");
 		
 		writeLineInFile(out, "Moving vehicle [ms]: ", Settings.timeBetweenMovingVehicleSameDirection);
 		writeLineInFile(out, "Change direction [ms]: ", Settings.timeBetweenMovingVehicleUppersitDirection);
