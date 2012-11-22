@@ -9,6 +9,7 @@ import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -25,17 +26,21 @@ public class ImpactEnvironmentAgent extends Agent
 	private String typeOfAgent = "ImpactEnvirenmentAgent";			// The type of the agent
     DFAgentDescription[] ingoingLaneAgents;							// A list of all Lane agents
 
+    private int insertNewCarInterval = Settings.insertNewCarInterval;
+    private long startTime = System.currentTimeMillis();
     
     /******************** Setup the agent ********************/
-	Behaviour RequestFreeSpaceBehaviour = new TickerBehaviour( this, Settings.insertNewCarInterval )
+	Behaviour RequestFreeSpaceBehaviour = new WakerBehaviour( this, insertNewCarInterval )
     {
 		public void onStart(){
 			updateOuterInputLaneAgents();	
         }
 		
-		protected void onTick(){
+		protected void onWake(){
 			requestInsertCarInRandomLane();
-        }
+			calculateNewInsertionTime();
+			reset(insertNewCarInterval);
+        }		
     };
 	
     Behaviour insertCarIfSpaceBehaviour = new CyclicBehaviour()
@@ -55,6 +60,23 @@ public class ImpactEnvironmentAgent extends Agent
 
 	
     /******************** Support functions ********************/
+	//Calculates a new insertion time
+	private void calculateNewInsertionTime()
+	{
+		//If settings is set to constant insertion time to do nothing
+		if(Settings.changeInsertionTimeEverySample == false)
+			return;
+		
+		if(startTime + Settings.timeBetweenSamplingsInMilliSeconds < System.currentTimeMillis())
+		{
+			if(Settings.printStartOfNewSamples)
+				System.out.println("Impact agent started new sample");
+			insertNewCarInterval += Settings.changeInInsertionTimeEverySample;
+			startTime += Settings.timeBetweenSamplingsInMilliSeconds;
+		}
+	}
+	
+	
 	//Get outer input lane agents	
 	private void updateOuterInputLaneAgents()
 	{	
