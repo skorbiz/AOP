@@ -11,7 +11,7 @@ public class Vehicle implements Serializable {
 	private long startTimeInLane;
 	
 	/**** Physical constant parameters ****/
-	private double distanceBetweenCrosses = 200; 	//[m]
+	private double distanceBetweenCrosses = 250; 	//[m]
 	private double acceleration = 1.5;				//[m/s^2]		(Corresponding to about 0-100 on 19 sec)
 	private double maxSpeed = 13;					//[m/s]			(Corresponding to about 50 km/h)		
 	

@@ -29,14 +29,9 @@ public class Cross extends Agent {
 	// The list of input and output lane agents
 	private AID[] inLaneAgents = new AID[4];
 	private AID[] outLaneAgents = new AID[4];
-	// The list of surrounding cross agent
-	private AID[] crossAgents = new AID[4];
 	// traffic direction, "v" for vertical, "h" for horizontal
 	private String traDir = Settings.verticalDef;
-	// Price for changing direction
-	private int chaPri = Settings.priceForChangingDirection;
-	// Vehicles to move before traffic direction can be changed again because of emergency vehicle
-	private int emerVehCnt = 0;
+	private int traDirInt = 1;
 
 	
 	/**
@@ -69,22 +64,17 @@ public class Cross extends Agent {
 			// Add CyclicBehaviour: gui can request the light
 			addBehaviour(new RequestDirection());
 			
+			// Add Behaviour: finding the right lanes
+			addBehaviour(new FindingRightLanes());
 			
 			// Add WakerBehaviour: for changing direction
-			addBehaviour(new WakerBehaviour(this, 1000) {
-				public void onStart() {
-					// Add Behaviour: finding the right lanes
-					addBehaviour(new FindingRightLanes());
-				};
-				
+			addBehaviour(new WakerBehaviour(this, 1000) {				
 				protected void onWake() {
-					if( emerVehCnt==0 ) { // Only allowed to change direction if no vehicles has to be mode before a emergency vehicle
-						if( Settings.modeForChangingTrafficDirection==Settings.modeSimple ) { // 50/50 % control of direction
-							changeDirectionEqual();
-						}
-						else if( Settings.modeForChangingTrafficDirection==Settings.modeComplex ) { // Complex control of cross
-							addBehaviour(new RequestLaneOffers());						
-						}
+					if( Settings.modeForChangingTrafficDirection==Settings.modeSimple ) { // 50/50 % control of direction
+						changeDirectionEqual();
+					}
+					else if( Settings.modeForChangingTrafficDirection==Settings.modeComplex ) { // Complex control of cross
+						addBehaviour(new RequestLaneOffers());
 					}
 					reset(Settings.timeBetweenDirectionChange);
 				}
@@ -271,6 +261,10 @@ public class Cross extends Agent {
 						repliesCnt++;
 						if (repliesCnt >= laneAgents.length) {
 							// All replies received
+							if( Settings.print )
+								System.out.println(myAgent.getLocalName() + " ingoing lanes: " + inLaneAgents[0].getLocalName() + ", " + inLaneAgents[1].getLocalName() + ", " + inLaneAgents[2].getLocalName() + ", " + inLaneAgents[3].getLocalName() + ".");
+							if( Settings.print )
+								System.out.println(myAgent.getLocalName() + " ontgoing lanes: " + outLaneAgents[0].getLocalName() + ", " + outLaneAgents[1].getLocalName() + ", " + outLaneAgents[2].getLocalName() + ", " + outLaneAgents[3].getLocalName() + ".");
 							step = 4;
 						}
 					}
@@ -344,17 +338,19 @@ public class Cross extends Agent {
 						}
 						repliesCnt++;
 						if (repliesCnt >= inLaneAgents.length) {
+							int totalOffer = offers[0]+offers[1]+offers[2]+offers[3];
+							int changing = (traDirInt*totalOffer*Settings.procentForChangingDirection)/100;
 							// All replies received
-							if( (offers[0]+offers[1]+chaPri)>(offers[2]+offers[3]) ) { // vertical
+							if( (offers[0]+offers[1]+changing)>(offers[2]+offers[3]) ) { // vertical
 								traDir = Settings.verticalDef;
-								chaPri = Settings.priceForChangingDirection;
+								traDirInt = 1;
 							}
 							else { // horizontal
 								traDir = Settings.horizontalDef;
-								chaPri = -Settings.priceForChangingDirection;
+								traDirInt = -1;
 							}
 							if(Settings.printTrafficDirection)
-								System.out.println(myAgent.getLocalName() + ": " + offers[0] + "+" + offers[1] + " + " + chaPri + " > " + offers[2] + "+" + offers[3] + " (trafic direction now: " + traDir + ".");
+								System.out.println(myAgent.getLocalName() + ": if(" + offers[0] + "+" + offers[1] + " + " + changing + " > " + offers[2] + "+" + offers[3] + ")== true => v else h (trafic direction now: " + traDir + ").");
 							step = 3;
 						}
 					}
@@ -518,7 +514,7 @@ public class Cross extends Agent {
 				case 5: // Sending vehicle to the right outgoing lane.
 					try {
 						if(Settings.print)
-							System.out.println("Cross " + crossId + " sending vehicles " + vehicles[0] + " to " + accOutLaneAgents[0].getLocalName() + " and " + vehicles[1] + " to " + accOutLaneAgents[1].getLocalName() + ".");
+							System.out.println("Cross " + crossId + " sending vehicles " + vehicles[0] + " to " + accOutLaneAgents[0].getLocalName() + " and " + vehicles[1] + " to " + accOutLaneAgents[1].getLocalName() + ").");
 						if( vehicles[0]!=null ) {
 							ACLMessage replyOutLane1 = new ACLMessage(ACLMessage.PROPAGATE);
 							myAgent.send(replyOutLane1);
@@ -537,14 +533,6 @@ public class Cross extends Agent {
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
-					}
-					
-					// for emergency vehicles
-					if( emerVehCnt>0 ) {
-						emerVehCnt--;
-						if( emerVehCnt==0 ) {
-							
-						}
 					}
 					
 					step = 6;
@@ -574,79 +562,6 @@ public class Cross extends Agent {
 			}
 		}
 		
-	}
-	
-	
-	/**
-	 * 
-	 */
-	private class EmergencyVehicleInform extends CyclicBehaviour {
-		// used on switch-case
-		private int step = 0;
-		// The template to receive replies
-		private MessageTemplate mt;
-		// conversations ID of this behaviour
-		private String conIdEme = "lane-eme";
-		
-		private int tempEmerVehCnt = 0;
-		
-		private int agentNumber = 0;
-
-		public void action() {
-			switch (step) {
-				case 0:
-					mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.INFORM ),
-											 MessageTemplate.MatchContent( Settings.CrossToCrossInformEmergency ));
-					ACLMessage msgInf = myAgent.receive(mt);
-					if (msgInf != null) 
-					{
-
-						for(int i=0; i<4; i++) {
-							if( crossAgents[i]==msgInf.getSender() ) {
-								
-								agentNumber = i;
-								
-								tempEmerVehCnt = Integer.parseInt(msgInf.getContent());
-								
-								ACLMessage msgReq = new ACLMessage(ACLMessage.REQUEST);
-								msgReq.addReceiver(inLaneAgents[i]);
-								msgReq.setContent(Settings.CrossToLaneRequestLocalID);
-								msgReq.setConversationId(conIdEme);
-								msgReq.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
-								myAgent.send(msgReq);
-								// Prepare the template to get proposals
-								mt = MessageTemplate.and(MessageTemplate.MatchConversationId(conIdEme),
-														 MessageTemplate.MatchInReplyTo(msgReq.getReplyWith()));
-								step = 1;
-								break;
-							}
-						}
-					}
-					else {
-						block();
-					}
-					break;
-				case 1:
-					ACLMessage msgPro = myAgent.receive(mt);
-					if (msgPro != null) 
-					{
-						emerVehCnt = Integer.parseInt(msgPro.getContent()) + tempEmerVehCnt;
-						
-						if( agentNumber==0 || agentNumber==1 ) {
-							traDir = Settings.verticalDef;
-						}
-						else {
-							traDir = Settings.horizontalDef;
-						}
-						
-						step = 0;
-					}
-					else {
-						block();
-					}
-					break;
-			}
-		}	
 	}
 	
 }

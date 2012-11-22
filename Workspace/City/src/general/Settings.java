@@ -1,8 +1,5 @@
 package general;
 
-import jade.lang.acl.ACLMessage;
-import jade.lang.acl.MessageTemplate;
-
 public class Settings 
 {
 
@@ -18,20 +15,23 @@ public class Settings
 	public static String nameFrame = "Trafik simulering";
 	
 /**** CROSS SETTINGS *********************************/
-	public static int modeForChangingTrafficDirection = 0;
 	public static int modeSimple = 0; // for 50/50%
 	public static int modeComplex = 1; // for complex.
-	public static int timeBetweenDirectionChange = 10000;
+	public static int modeForChangingTrafficDirection = modeSimple;
+	public static int timeBetweenDirectionChange = 15000;
 	public static int timeBetweenMovingVehicleSameDirection = 2000;
 	public static int timeBetweenMovingVehicleUppersitDirection = 6000;
 	public static String verticalDef = "v";
 	public static String horizontalDef = "h";
-	public static int priceForChangingDirection = 50;
+	public static int procentForChangingDirection = 60;
+	
+/**** CROSS SETTINGS *********************************/
+	public static int maxVehicleInLane = 10;
 	
 /**** DEBUG SETTINGS *********************************/
 	public static boolean print = false;
-	public static boolean printMoveVehicleInterval = true;
-	public static boolean printTrafficDirection = true;
+	public static boolean printMoveVehicleInterval = false;
+	public static boolean printTrafficDirection = false;
 	
 /**** JADE CONTENT MESAGES *************************/
 	public static String GuiToLaneRequestCars 				= "GUI requests number of cars in all lanes";

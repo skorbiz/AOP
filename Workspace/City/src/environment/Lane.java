@@ -88,9 +88,8 @@ public class Lane extends Agent {
 	private class RequestLaneIdServer extends CyclicBehaviour {
 		public void action() 
 		{
-			MessageTemplate mt = MessageTemplate.and(  
-					MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-					MessageTemplate.MatchContent(Settings.CrossToLaneRequestLocalID));
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													 MessageTemplate.MatchContent(Settings.CrossToLaneRequestLocalID));
 
 			ACLMessage msg = myAgent.receive(mt);
 			
@@ -110,12 +109,9 @@ public class Lane extends Agent {
 	private class RequestOfferServer extends CyclicBehaviour {
 		public void action() 
 		{	
-			MessageTemplate mt = MessageTemplate.and(  
-					MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-					MessageTemplate.MatchContent(Settings.CrossToLaneRequesOffers));
-
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													 MessageTemplate.MatchContent(Settings.CrossToLaneRequesOffers));
 			ACLMessage msg = myAgent.receive(mt);
-			
 			if (msg != null) {
 				ACLMessage reply = msg.createReply();
 				
@@ -141,10 +137,8 @@ public class Lane extends Agent {
 	
 	private class RequestNumberVehicleServer extends CyclicBehaviour {
 		public void action() {
-			MessageTemplate mt = MessageTemplate.and(  
-													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-													MessageTemplate.MatchContent(Settings.GuiToLaneRequestCars));
-
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													 MessageTemplate.MatchContent(Settings.GuiToLaneRequestCars));
 			ACLMessage msg = myAgent.receive(mt);
 			if ( msg != null )											//Create reply messages
 			{
@@ -249,7 +243,6 @@ public class Lane extends Agent {
 	private class QueueLane 
 	{
 		ArrayList<Vehicle> vehicleInLane = new ArrayList<Vehicle>();
-		private int maxVehicleInLane = 10;
 		
 		public QueueLane() 
 		{
@@ -262,7 +255,7 @@ public class Lane extends Agent {
 		
 		public int getNumberOfFreeSpacesForVehicles() 
 		{
-			return maxVehicleInLane-vehicleInLane.size();
+			return Settings.maxVehicleInLane-vehicleInLane.size();
 		}
 		
 		public int getPrice() 
@@ -276,7 +269,7 @@ public class Lane extends Agent {
 		
 		public boolean insertVehicle(Vehicle vehicle) 
 		{
-			if( vehicleInLane.size() < maxVehicleInLane )
+			if( vehicleInLane.size() < Settings.maxVehicleInLane )
 				return vehicleInLane.add(vehicle);
 			else 
 				return false;
