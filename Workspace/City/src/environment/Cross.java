@@ -67,8 +67,10 @@ public class Cross extends Agent {
 			// Add Behaviour: finding the right lanes
 			addBehaviour(new FindingRightLanes());
 			
+			int time = setDirectionTimeRandom();
+			
 			// Add WakerBehaviour: for changing direction
-			addBehaviour(new WakerBehaviour(this, 1000) {				
+			addBehaviour(new WakerBehaviour(this, time) {		
 				protected void onWake() {
 					if( Settings.modeForChangingTrafficDirection==Settings.modeSimple ) { // 50/50 % control of direction
 						changeDirectionEqual();
@@ -136,15 +138,30 @@ public class Cross extends Agent {
 	}
 	
 	
+	private int setDirectionTimeRandom() {
+		// get random time
+		int time = (int) (Math.random()*((double) Settings.timeBetweenDirectionChange));
+		// set direction
+		if( time%2==0 ) {
+			traDir = Settings.verticalDef;
+		}
+		else {
+			traDir = Settings.horizontalDef;
+		}
+		System.out.println(crossId + ": time: " + time + ". Direction: " + traDir);
+		return time;
+	}
+	
+	
 	/**
 	 * Used for changing direction in 50/50% mode.
 	 */
 	private void changeDirectionEqual() {
 		if( traDir.compareTo(Settings.verticalDef)==0 ) {
-			traDir = "h";
+			traDir = Settings.horizontalDef;
 		}
 		else if( traDir.compareTo(Settings.horizontalDef)==0 ) {
-			traDir = "v";
+			traDir = Settings.verticalDef;
 		}
 	}
 	

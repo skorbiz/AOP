@@ -2,8 +2,6 @@ package general;
 
 public class Settings 
 {
-
-
 /**** GENERAL SETTINGS *****************************/
 	public static int sizex = 4;
 	public static int sizey = 4;
@@ -18,7 +16,7 @@ public class Settings
 	public static int modeSimple = 0; // for 50/50%
 	public static int modeComplex = 1; // for complex.
 	public static int modeForChangingTrafficDirection = modeSimple;
-	public static int timeBetweenDirectionChange = 15000;
+	public static int timeBetweenDirectionChange = 10000;
 	public static int timeBetweenMovingVehicleSameDirection = 2000;
 	public static int timeBetweenMovingVehicleUppersitDirection = 6000;
 	public static String verticalDef = "v";
