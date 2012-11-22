@@ -5,7 +5,7 @@ public class Settings
 /**** GENERAL SETTINGS *****************************/
 	public static int sizex = 4;
 	public static int sizey = 4;
-	public static int insertNewCarInterval = 1500;
+	public static int insertNewCarInterval = 1000;
 	
 /**** GUI SETTINGS *********************************/
 	public static int sizexFrame = (sizex+1)*100;
@@ -29,7 +29,7 @@ public class Settings
 	public static int changeInInsertionTimeEverySample = -100;
 	
 /**** TESTING SETTINGS *********************************/
-	public static long timeBetweenSamplingsInMilliSeconds = 1000*60*10;
+	public static long timeBetweenSamplingsInMilliSeconds = 1000*60*5;
 	
 /**** DEBUG SETTINGS *********************************/
 	public static boolean print = false;
