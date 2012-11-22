@@ -29,7 +29,7 @@ public class Settings
 	public static int changeInInsertionTimeEverySample = -100;
 	
 /**** TESTING SETTINGS *********************************/
-	public static long timeBetweenSamplingsInMilliSeconds = 1000*10;
+	public static long timeBetweenSamplingsInMilliSeconds = 1000*60*10;
 	
 /**** DEBUG SETTINGS *********************************/
 	public static boolean print = false;
