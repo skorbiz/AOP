@@ -27,15 +27,12 @@ public class ImpactEnvironmentAgent extends Agent
     DFAgentDescription[] ingoingLaneAgents;							// A list of all Lane agents
 
     private int insertNewCarInterval = Settings.insertNewCarInterval;
+    private int insertNewCarIntervalWithRandomness = Settings.insertNewCarInterval;
     private long startTime = System.currentTimeMillis();
     
     /******************** Setup the agent ********************/
-	Behaviour RequestFreeSpaceBehaviour = new WakerBehaviour( this, insertNewCarInterval )
+	Behaviour requestFreeSpaceBehaviour = new WakerBehaviour( this, insertNewCarIntervalWithRandomness )
     {
-		public void onStart(){
-			updateOuterInputLaneAgents();	
-        }
-		
 		protected void onWake(){
 			requestInsertCarInRandomLane();
 			calculateNewInsertionTime();
@@ -53,7 +50,9 @@ public class ImpactEnvironmentAgent extends Agent
 	protected void setup() 
 	{
 		//System.out.println(typeOfAgent + getAID().getName()+" is ready.");
-		addBehaviour(RequestFreeSpaceBehaviour);
+		updateOuterInputLaneAgents();	
+
+		addBehaviour(requestFreeSpaceBehaviour);
 		addBehaviour(insertCarIfSpaceBehaviour);
 
 	}
@@ -63,6 +62,11 @@ public class ImpactEnvironmentAgent extends Agent
 	//Calculates a new insertion time
 	private void calculateNewInsertionTime()
 	{
+		//Add a bit of randomness to the time
+		int temp = (int) (Math.random()*insertNewCarInterval/2);
+		temp -= insertNewCarInterval/4;
+		insertNewCarIntervalWithRandomness += temp;
+		
 		//If settings is set to constant insertion time to do nothing
 		if(Settings.changeInsertionTimeEverySample == false)
 			return;
@@ -105,11 +109,17 @@ public class ImpactEnvironmentAgent extends Agent
 
 	
 	private void requestInsertCarInRandomLane()
-	{		
-	    ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
-	    msg.setContent(Settings.CrossToLaneRequesSpaces);	
-	    msg.addReceiver( ingoingLaneAgents[ (int) (Math.random()*ingoingLaneAgents.length) ].getName() );
-	    send(msg);
+	{	
+		int numberOfCarsToBeInserted = (int) (Math.random()*4);
+		int laneToInsertCarsInTo = (int) (Math.random()*ingoingLaneAgents.length);
+		
+		for(int i = 0; i < numberOfCarsToBeInserted; i++)
+		{
+			ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+		    msg.setContent(Settings.CrossToLaneRequesSpaces);	
+		    msg.addReceiver( ingoingLaneAgents[ laneToInsertCarsInTo ].getName() );
+		    send(msg);
+		}
 	}
 	
 	//Inserts cars into lanes if the respond with free space
