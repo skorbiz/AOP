@@ -78,7 +78,7 @@ public class Cross extends Agent {
 					else if( Settings.modeForChangingTrafficDirection==Settings.modeComplex ) { // Complex control of cross
 						addBehaviour(new RequestLaneOffers());
 					}
-					reset(Settings.timeBetweenDirectionChange);
+					reset(Settings.timeBetweenDirectionChange);	
 				}
 			} );
 						
@@ -97,8 +97,9 @@ public class Cross extends Agent {
 							if( oldTrafficDir.compareTo(newTrafficDir)==0 ) {
 								resetTime = Settings.timeBetweenMovingVehicleSameDirection;
 							}
-							else
+							else {
 								resetTime = Settings.timeBetweenMovingVehicleUppersitDirection;
+							}
 							oldTrafficDir = newTrafficDir;
 							step = 1;
 							if( Settings.printMoveVehicleInterval )
