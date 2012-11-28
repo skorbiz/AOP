@@ -19,6 +19,8 @@ public class StatisticInterface
 	private double TotalCarsThroug = 0;
 	private double TotalWaitTime = 0;
 	
+	private double AvargeWaitTime = 0;
+	
 	private double ThroughputCars = 0;
 	private double ThroughputWaitTime = 0;
 	
@@ -66,6 +68,7 @@ public class StatisticInterface
 		runTime = 0;
 		TotalCarsThroug = 0;
 		TotalWaitTime = 0;
+		AvargeWaitTime = 0;
 		ThroughputCars = 0;
 		ThroughputWaitTime = 0;
 		meanWaitTime = 0;
@@ -78,13 +81,15 @@ public class StatisticInterface
 	public void calculateAndSaveStatistics()
 	{
 		endTime = System.currentTimeMillis();
-		runTime = (endTime - startTime)/1000;
+		runTime = (endTime - startTime)/1000*(sampleNumber+1);
 		
 		TotalCarsThroug = vehicles.size();
 		
 		TotalWaitTime = 0;
 		for(int i = 0; i < vehicles.size(); i++)
 			TotalWaitTime += vehicles.get(i).getTotalWaitTime()/1000;
+		
+		AvargeWaitTime = TotalWaitTime/TotalCarsThroug;
 		
 		ThroughputCars =     TotalCarsThroug / ( (double) runTime );
 		ThroughputWaitTime = TotalWaitTime / ( (double) runTime );
@@ -143,6 +148,8 @@ public class StatisticInterface
 
 		writeLineInFile(out, "Total cars through: ", TotalCarsThroug);
 		writeLineInFile(out, "Total wait time: ", TotalWaitTime);
+		
+		writeLineInFile(out, "Avarge wait time: ", AvargeWaitTime);
 
 		writeLineInFile(out, "Throughput cars: ", ThroughputCars);
 		writeLineInFile(out, "Throughput wait time: ", ThroughputWaitTime);

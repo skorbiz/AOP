@@ -4,6 +4,8 @@ Workspace/City/html
 Workspace/City/latex
 *.doxyfile
 
+sample*
+
 .DS_Store*
 *.classpath
 *.project
