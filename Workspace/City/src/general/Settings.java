@@ -16,17 +16,17 @@ public class Settings
 	public static int modeSimple = 0; // for 50/50%
 	public static int modeComplex = 1; // for complex.
 	public static int modeForChangingTrafficDirection = modeSimple;
-	public static int timeBetweenDirectionChange = 20000;
+	public static int timeBetweenDirectionChange = 20000;//20000;//3500;
 	public static int timeBetweenMovingVehicleSameDirection = 1500;
 	public static int timeBetweenMovingVehicleUppersitDirection = 6000;
 	public static String verticalDef = "v";
 	public static String horizontalDef = "h";
-	public static int procentForChangingDirection = 35;
+	public static int procentForChangingDirection = 25;
 	public static int maxVehicleInLane = 10;
 
 /**** INSERT NEW CARS SETTINGS *********************************/
 	public static boolean changeInsertionTimeEverySample = false;
-	public static int changeInInsertionTimeEverySample = -100;
+	public static int changeInInsertionTimeEverySample = -250;
 	
 /**** TESTING SETTINGS *********************************/
 	public static long timeBetweenSamplingsInMilliSeconds = 1000*60*5;

@@ -5,7 +5,7 @@ Workspace/City/latex
 *.doxyfile
 
 sample*
-
+*.txt
 .DS_Store*
 *.classpath
 *.project
