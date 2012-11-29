@@ -3,9 +3,9 @@ package general;
 public class Settings 
 {
 /**** GENERAL SETTINGS *****************************/
-	public static int sizex = 4;
-	public static int sizey = 4;
-	public static int insertNewCarInterval = 2000;
+	public static int sizex = 2;
+	public static int sizey = 2;
+	public static int insertNewCarInterval = 3000;
 	
 /**** GUI SETTINGS *********************************/
 	public static int sizexFrame = (sizex+1)*100;

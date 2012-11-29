@@ -1,4 +1,5 @@
 package environment;
+
 import vehicle.*;
 
 import general.Settings;
@@ -11,7 +12,6 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
-import java.util.ArrayList;
 import java.io.IOException;
 import java.lang.System;
 
@@ -175,7 +175,7 @@ public class Lane extends Agent {
 				else 
 				{
 					reply.setPerformative(ACLMessage.FAILURE);
-					reply.setContent("Lane out of order");
+					reply.setContent("No empty spaces in lane");
 				}
 				myAgent.send(reply);
 			}
@@ -187,13 +187,10 @@ public class Lane extends Agent {
 	
 	
 	private class RequestRetrieveVehicleServer extends CyclicBehaviour {
-		private int step = 0;
-		MessageTemplate mt;
-		
+	
 		public void action() {
-			MessageTemplate mt = MessageTemplate.and(  
-													MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
-													MessageTemplate.MatchContent(Settings.CrossToLaneRequestRetrieveVehicle));
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.REQUEST ),
+													 MessageTemplate.MatchContent(Settings.CrossToLaneRequestRetrieveVehicle));
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) {
 				ACLMessage reply = msg.createReply();
@@ -225,14 +222,22 @@ public class Lane extends Agent {
 			ACLMessage msg = myAgent.receive(mt);
 			if (msg != null) 
 			{
+				ACLMessage reply = msg.createReply();
 				boolean test = false;
 				try 
 				{
 					Vehicle vehicle = (Vehicle) msg.getContentObject();
-					long temp = vehicle.getWaitTime();
 					test = queue.insertVehicle( (Vehicle) vehicle );
 				}
 				catch (Exception ex) { ex.printStackTrace(); }
+				if( test ) {
+					reply.setPerformative(ACLMessage.INFORM);
+					reply.setContent("Vehicle inserted correct");
+				}
+				else {
+					reply.setPerformative(ACLMessage.FAILURE);
+					reply.setContent("Vehicle inserted wrong! ERROR!");
+				}
 			}
 			else 
 				block();

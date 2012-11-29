@@ -462,6 +462,10 @@ public class Cross extends Agent {
 								emptySpacesInLane[1] = emptySpaces;
 							}
 						}
+						else {
+							// No empty spaces in lane.
+							// By default the lane will not send a vehicle to this lane
+						}
 						repliesCnt++;
 						if (repliesCnt >= 2) {
 							// All replies received
@@ -515,9 +519,11 @@ public class Cross extends Agent {
 									vehicles[1] = (Vehicle) replyInLane.getContentObject();
 								}
 							}
-							catch (Exception ex) {
-								ex.printStackTrace();
-							}
+							catch (Exception ex) { ex.printStackTrace(); }
+						}
+						else {
+							// No vehicles is ready to get over the cross.
+							// By default handled by the cross
 						}
 						repliesCnt--;
 						if( repliesCnt==0 ) {
@@ -549,9 +555,7 @@ public class Cross extends Agent {
 							replyOutLane2.setReplyWith("msg" + System.currentTimeMillis()); // Unique value
 							myAgent.send(replyOutLane2);
 						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					} catch (IOException e) { e.printStackTrace(); }
 					
 					step = 6;
 					break;
@@ -561,25 +565,5 @@ public class Cross extends Agent {
 		public boolean done() {
 			return (step == 6);
 		}
-	}
-	
-	
-	private class EmergencyVehiclePropagate extends CyclicBehaviour {
-		// The template to receive replies
-		private MessageTemplate mt;
-
-		public void action() {
-			mt = MessageTemplate.and(MessageTemplate.MatchPerformative( ACLMessage.INFORM ),
-									 MessageTemplate.MatchContent( Settings.CrossToCrossInformEmergencyMoved ));
-			ACLMessage msgInf = myAgent.receive(mt);
-			if (msgInf != null) {
-				
-			}
-			else {
-				block();
-			}
-		}
-		
-	}
-	
+	}	
 }
